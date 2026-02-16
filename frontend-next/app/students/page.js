@@ -28,6 +28,18 @@ export default function StudentsPage() {
     } catch (err) { alert('등록 오류: ' + err.message); }
   };
 
+  const handleResetPin = async (id, name) => {
+    if (!confirm(`${name} 학생의 비밀번호를 초기화하시겠습니까?\n학생이 다음 접속 시 새 비밀번호를 설정하게 됩니다.`)) return;
+    try {
+      await fetch('/api/students/reset-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: id }),
+      });
+      alert(`${name} 학생의 비밀번호가 초기화되었습니다.`);
+    } catch (e) { alert('초기화 실패: ' + e.message); }
+  };
+
   const handleDelete = async (id, name) => {
     if (!confirm(`${name} 학생을 삭제하시겠습니까?`)) return;
     try { await deleteStudent(id); fetchStudents(); } catch (e) { alert(e.message); }
@@ -97,6 +109,7 @@ export default function StudentsPage() {
                 <th className="text-left p-3">이름</th>
                 <th className="text-left p-3">반</th>
                 <th className="text-left p-3">번호</th>
+                <th className="text-center p-3">비밀번호</th>
                 <th className="text-center p-3">삭제</th>
               </tr>
             </thead>
@@ -107,6 +120,10 @@ export default function StudentsPage() {
                   <td className="p-3 font-medium">{s.name}</td>
                   <td className="p-3">{s.class_name}</td>
                   <td className="p-3">{s.number}</td>
+                  <td className="p-3 text-center">
+                    <button onClick={() => handleResetPin(s.id, s.name)}
+                      className="text-amber-600 hover:text-amber-800 text-xs">초기화</button>
+                  </td>
                   <td className="p-3 text-center">
                     <button onClick={() => handleDelete(s.id, s.name)}
                       className="text-red-500 hover:text-red-700 text-xs">삭제</button>
