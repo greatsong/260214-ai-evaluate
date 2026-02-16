@@ -9,16 +9,26 @@ export async function GET(request) {
     return NextResponse.json({ error: '학번(number)이 필요합니다.' }, { status: 400 });
   }
 
-  if (!pin) {
-    return NextResponse.json({ error: '비밀번호(pin)가 필요합니다.' }, { status: 400 });
-  }
-
-  // Vercel 모드에서는 데모 데이터에서 조회
   const { demoStudents } = await import('@/lib/demoData');
   const student = demoStudents.find(s => s.student_number === studentNumber);
 
   if (!student) {
     return NextResponse.json({ error: '해당 학번의 학생을 찾을 수 없습니다.' }, { status: 404 });
+  }
+
+  // pin 파라미터가 없으면: 학생 기본 정보 + 비밀번호 설정 여부만 반환
+  if (!pin) {
+    return NextResponse.json({
+      id: student.id,
+      name: student.name,
+      class_name: student.class_name,
+      has_pin: !!student.pin,
+    });
+  }
+
+  // pin 파라미터가 있으면: 비밀번호 검증
+  if (!student.pin) {
+    return NextResponse.json({ error: '비밀번호가 설정되지 않았습니다. 먼저 비밀번호를 설정하세요.' }, { status: 400 });
   }
 
   if (student.pin !== pin) {
@@ -29,6 +39,8 @@ export async function GET(request) {
     id: student.id,
     name: student.name,
     class_name: student.class_name,
-    number: student.number
+    number: student.number,
+    has_pin: true,
+    verified: true,
   });
 }

@@ -4,34 +4,64 @@ import { getArtifacts, getEvaluations, getReflection, saveReflection } from '@/l
 import { PRACTICE_TYPES } from '@/lib/constants';
 
 export default function MySubmissionsPage() {
+  // Step 1: 학번 조회
   const [studentNumber, setStudentNumber] = useState('');
+  const [lookupResult, setLookupResult] = useState(null);
+  const [lookupError, setLookupError] = useState('');
+  const [lookingUp, setLookingUp] = useState(false);
+
+  // Step 2: 비밀번호 인증
   const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [verifying, setVerifying] = useState(false);
+
   const [student, setStudent] = useState(null);
   const [artifacts, setArtifacts] = useState([]);
   const [evaluations, setEvaluations] = useState({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [selectedArtifact, setSelectedArtifact] = useState(null);
   const [reflection, setReflection] = useState(null);
   const [reflectionForm, setReflectionForm] = useState({ agree: '', disagree: '', next_time: '' });
   const [showReflectionForm, setShowReflectionForm] = useState(false);
   const [savingReflection, setSavingReflection] = useState(false);
 
+  // Step 1: 학번 조회
   const handleLookup = async () => {
     if (!studentNumber || studentNumber.length < 3) return;
-    if (!pin || pin.length < 4) { setError('비밀번호 4자리를 입력하세요.'); return; }
-    setLoading(true);
-    setError('');
+    setLookingUp(true);
+    setLookupError('');
+    setLookupResult(null);
+    try {
+      const res = await fetch(`/api/students/lookup?number=${studentNumber}`);
+      const data = await res.json();
+      if (res.ok) {
+        setLookupResult(data);
+      } else {
+        setLookupError(data.error || '학생을 찾을 수 없습니다.');
+      }
+    } catch {
+      setLookupError('조회 중 오류가 발생했습니다.');
+    } finally {
+      setLookingUp(false);
+    }
+  };
+
+  // Step 2: 비밀번호 인증 후 데이터 로드
+  const handleVerify = async () => {
+    if (!pin || pin.length < 4) { setPinError('비밀번호를 입력하세요.'); return; }
+    setVerifying(true);
+    setPinError('');
     try {
       const res = await fetch(`/api/students/lookup?number=${studentNumber}&pin=${pin}`);
       const data = await res.json();
-      if (!res.ok) { setError(data.error); setLoading(false); return; }
+      if (!res.ok) { setPinError(data.error); setVerifying(false); return; }
       setStudent(data);
 
+      // 데이터 로드
+      setLoading(true);
       const arts = await getArtifacts({ student_id: data.id });
       setArtifacts(arts);
 
-      // 각 산출물의 평가 결과 조회
       const evalMap = {};
       for (const art of arts) {
         try {
@@ -47,9 +77,12 @@ export default function MySubmissionsPage() {
         } catch { /* skip */ }
       }
       setEvaluations(evalMap);
-    } catch (e) {
-      setError('조회 중 오류가 발생했습니다.');
-    } finally { setLoading(false); }
+    } catch {
+      setPinError('오류가 발생했습니다.');
+    } finally {
+      setVerifying(false);
+      setLoading(false);
+    }
   };
 
   const getLevel = (ev) => ev?.level || (ev?.total_score >= 3.5 ? '탁월' : ev?.total_score >= 2.5 ? '우수' : ev?.total_score >= 1.5 ? '보통' : '미달');
@@ -73,34 +106,71 @@ export default function MySubmissionsPage() {
       </header>
 
       <div className="max-w-3xl mx-auto p-6">
-        {/* 학번 입력 */}
         {!student ? (
           <div className="bg-white rounded-xl border p-8 text-center">
-            <h2 className="text-lg font-bold mb-1">학번과 비밀번호를 입력하세요</h2>
-            <p className="text-xs text-slate-400 mb-4">비밀번호 초기값: 학번 뒤 4자리</p>
-            <div className="flex gap-3 max-w-md mx-auto">
-              <input
-                type="text" value={studentNumber}
-                onChange={e => setStudentNumber(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleLookup()}
-                placeholder="학번 (예: 10101)"
-                className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 outline-none"
-                autoFocus
-              />
-              <input
-                type="password" value={pin}
-                onChange={e => setPin(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleLookup()}
-                placeholder="비밀번호"
-                maxLength={4}
-                className="border rounded-lg px-4 py-2.5 text-sm w-28 focus:ring-2 focus:ring-blue-300 outline-none"
-              />
-              <button onClick={handleLookup} disabled={loading}
-                className="bg-blue-600 text-white rounded-lg px-6 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300">
-                {loading ? '조회 중...' : '조회'}
-              </button>
-            </div>
-            {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
+            {!lookupResult ? (
+              /* Step 1: 학번 입력 */
+              <>
+                <h2 className="text-lg font-bold mb-4">학번을 입력하세요</h2>
+                <div className="flex gap-3 max-w-sm mx-auto">
+                  <input
+                    type="text" value={studentNumber}
+                    onChange={e => { setStudentNumber(e.target.value); setLookupError(''); }}
+                    onKeyDown={e => e.key === 'Enter' && handleLookup()}
+                    placeholder="학번 (예: 10101)"
+                    className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 outline-none"
+                    autoFocus
+                  />
+                  <button onClick={handleLookup} disabled={lookingUp || studentNumber.length < 3}
+                    className="bg-blue-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300">
+                    {lookingUp ? '...' : '확인'}
+                  </button>
+                </div>
+                {lookupError && <p className="text-sm text-red-500 mt-3">{lookupError}</p>}
+              </>
+            ) : !lookupResult.has_pin ? (
+              /* 비밀번호 미설정 */
+              <>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-4 inline-block">
+                  <span className="font-semibold text-emerald-800">{lookupResult.name}</span>
+                  <span className="text-emerald-600 ml-2 text-xs">{lookupResult.class_name}</span>
+                </div>
+                <p className="text-sm text-amber-600 mb-3">
+                  아직 비밀번호가 설정되지 않았습니다. <a href="/submit" className="underline font-medium">산출물 제출</a> 시 비밀번호를 먼저 설정해주세요.
+                </p>
+                <button onClick={() => { setLookupResult(null); setStudentNumber(''); }}
+                  className="text-xs text-slate-400 hover:text-slate-600">다시 입력</button>
+              </>
+            ) : (
+              /* Step 2: 비밀번호 인증 */
+              <>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-4 inline-block">
+                  <span className="font-semibold text-emerald-800">{lookupResult.name}</span>
+                  <span className="text-emerald-600 ml-2 text-xs">{lookupResult.class_name}</span>
+                </div>
+                <h2 className="text-base font-bold mb-3">비밀번호를 입력하세요</h2>
+                <div className="flex gap-3 max-w-xs mx-auto">
+                  <input
+                    type="password" value={pin}
+                    onChange={e => setPin(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleVerify()}
+                    placeholder="비밀번호"
+                    maxLength={8}
+                    className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 outline-none"
+                    autoFocus
+                  />
+                  <button onClick={handleVerify} disabled={verifying}
+                    className="bg-blue-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300">
+                    {verifying ? '...' : '인증'}
+                  </button>
+                </div>
+                {pinError && <p className="text-sm text-red-500 mt-3">{pinError}</p>}
+                <button onClick={() => { setLookupResult(null); setStudentNumber(''); setPin(''); setPinError(''); }}
+                  className="text-xs text-slate-400 hover:text-slate-600 mt-3 block mx-auto">다시 입력</button>
+              </>
+            )}
+
+            {loading && <p className="text-sm text-slate-400 mt-4">데이터 불러오는 중...</p>}
           </div>
         ) : (
           <>
@@ -112,8 +182,8 @@ export default function MySubmissionsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-slate-500">제출 {artifacts.length}건</span>
-                <button onClick={() => { setStudent(null); setArtifacts([]); setEvaluations({}); setSelectedArtifact(null); }}
-                  className="text-xs text-slate-400 hover:text-slate-600">다른 학생</button>
+                <button onClick={() => { setStudent(null); setLookupResult(null); setArtifacts([]); setEvaluations({}); setSelectedArtifact(null); setStudentNumber(''); setPin(''); }}
+                  className="text-xs text-slate-400 hover:text-slate-600">로그아웃</button>
               </div>
             </div>
 

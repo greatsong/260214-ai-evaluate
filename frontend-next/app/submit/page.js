@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { addArtifact } from '@/lib/api';
@@ -11,12 +11,20 @@ function SubmitForm() {
   const presetSession = searchParams.get('session') || '';
   const presetDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
 
+  // Step 1: 학번 입력 → 학생 조회
   const [studentNumber, setStudentNumber] = useState('');
-  const [pin, setPin] = useState('');
-  const [student, setStudent] = useState(null);
+  const [lookupResult, setLookupResult] = useState(null); // { id, name, class_name, has_pin }
   const [lookupError, setLookupError] = useState('');
   const [lookingUp, setLookingUp] = useState(false);
 
+  // Step 2: 비밀번호 설정 또는 인증
+  const [pin, setPin] = useState('');
+  const [pinConfirm, setPinConfirm] = useState('');
+  const [student, setStudent] = useState(null); // 인증 완료된 학생
+  const [pinError, setPinError] = useState('');
+  const [verifying, setVerifying] = useState(false);
+
+  // Step 3: 산출물 작성
   const [practiceType, setPracticeType] = useState(presetType);
   const [session, setSession] = useState(presetSession);
   const [date, setDate] = useState(presetDate);
@@ -27,17 +35,21 @@ function SubmitForm() {
 
   const hasPreset = !!searchParams.get('type');
 
+  // Step 1: 학번으로 학생 조회
   const lookupStudent = async () => {
     if (!studentNumber || studentNumber.length < 3) return;
-    if (!pin || pin.length < 4) { setLookupError('비밀번호 4자리를 입력하세요.'); return; }
     setLookingUp(true);
     setLookupError('');
+    setLookupResult(null);
     setStudent(null);
+    setPin('');
+    setPinConfirm('');
+    setPinError('');
     try {
-      const res = await fetch(`/api/students/lookup?number=${studentNumber}&pin=${pin}`);
+      const res = await fetch(`/api/students/lookup?number=${studentNumber}`);
       const data = await res.json();
       if (res.ok) {
-        setStudent(data);
+        setLookupResult(data);
       } else {
         setLookupError(data.error || '학생을 찾을 수 없습니다.');
       }
@@ -45,6 +57,51 @@ function SubmitForm() {
       setLookupError('조회 중 오류가 발생했습니다.');
     } finally {
       setLookingUp(false);
+    }
+  };
+
+  // Step 2: 비밀번호 설정 (첫 사용)
+  const handleSetPin = async () => {
+    if (!pin || pin.length < 4) { setPinError('비밀번호 4자리 이상을 입력하세요.'); return; }
+    if (pin !== pinConfirm) { setPinError('비밀번호가 일치하지 않습니다.'); return; }
+    setVerifying(true);
+    setPinError('');
+    try {
+      const res = await fetch('/api/students/set-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_number: studentNumber, pin }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStudent(data);
+      } else {
+        setPinError(data.error || '비밀번호 설정 실패');
+      }
+    } catch {
+      setPinError('오류가 발생했습니다.');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  // Step 2: 비밀번호 인증 (이미 설정된 경우)
+  const handleVerifyPin = async () => {
+    if (!pin || pin.length < 4) { setPinError('비밀번호를 입력하세요.'); return; }
+    setVerifying(true);
+    setPinError('');
+    try {
+      const res = await fetch(`/api/students/lookup?number=${studentNumber}&pin=${pin}`);
+      const data = await res.json();
+      if (res.ok) {
+        setStudent(data);
+      } else {
+        setPinError(data.error || '인증 실패');
+      }
+    } catch {
+      setPinError('오류가 발생했습니다.');
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -123,49 +180,113 @@ function SubmitForm() {
       {/* 폼 */}
       <div className="max-w-2xl mx-auto p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* 학번 입력 */}
+
+          {/* Step 1: 본인 확인 */}
           <div className="bg-white rounded-xl border p-5">
-            <label className="text-sm font-semibold text-slate-700 block mb-2">본인 확인</label>
-            <div className="flex gap-3 items-center">
-              <input
-                type="text"
-                value={studentNumber}
-                onChange={e => { setStudentNumber(e.target.value); setStudent(null); setLookupError(''); }}
-                placeholder="학번 (예: 10101)"
-                className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none"
-                autoFocus
-              />
-              <input
-                type="password"
-                value={pin}
-                onChange={e => setPin(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && lookupStudent()}
-                placeholder="비밀번호"
-                maxLength={4}
-                className="border rounded-lg px-4 py-2.5 text-sm w-28 focus:ring-2 focus:ring-blue-300 outline-none"
-              />
-              <button type="button" onClick={lookupStudent} disabled={lookingUp}
-                className="bg-blue-600 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300 flex-shrink-0">
-                {lookingUp ? '...' : '확인'}
-              </button>
-              {student && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-sm flex-shrink-0">
+            <label className="text-sm font-semibold text-slate-700 block mb-3">Step 1. 본인 확인</label>
+
+            {!student ? (
+              <>
+                {/* 학번 입력 */}
+                {!lookupResult ? (
+                  <div>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={studentNumber}
+                        onChange={e => { setStudentNumber(e.target.value); setLookupResult(null); setLookupError(''); }}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), lookupStudent())}
+                        placeholder="학번 입력 (예: 10101)"
+                        className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none"
+                        autoFocus
+                      />
+                      <button type="button" onClick={lookupStudent} disabled={lookingUp || studentNumber.length < 3}
+                        className="bg-blue-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300 flex-shrink-0">
+                        {lookingUp ? '조회 중...' : '학번 확인'}
+                      </button>
+                    </div>
+                    {lookupError && <p className="text-xs text-red-500 mt-2">{lookupError}</p>}
+                  </div>
+                ) : (
+                  /* 학생 찾음 → 비밀번호 단계 */
+                  <div>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-4 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-emerald-800">{lookupResult.name}</span>
+                        <span className="text-emerald-600 ml-2 text-xs">{lookupResult.class_name}</span>
+                      </div>
+                      <button type="button" onClick={() => { setLookupResult(null); setStudentNumber(''); }}
+                        className="text-xs text-slate-400 hover:text-slate-600">다시 입력</button>
+                    </div>
+
+                    {!lookupResult.has_pin ? (
+                      /* 첫 사용: 비밀번호 설정 */
+                      <div>
+                        <p className="text-xs text-blue-600 bg-blue-50 rounded-lg p-3 mb-3">
+                          처음 사용하시네요! 앞으로 제출/열람에 사용할 비밀번호를 설정하세요.
+                        </p>
+                        <div className="flex gap-3 items-end">
+                          <div className="flex-1">
+                            <label className="text-xs text-slate-500 block mb-1">비밀번호 (4자리 이상)</label>
+                            <input type="password" value={pin} onChange={e => setPin(e.target.value)}
+                              maxLength={8} placeholder="비밀번호"
+                              className="w-full border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 outline-none" />
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-xs text-slate-500 block mb-1">비밀번호 확인</label>
+                            <input type="password" value={pinConfirm} onChange={e => setPinConfirm(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleSetPin())}
+                              maxLength={8} placeholder="한 번 더 입력"
+                              className="w-full border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 outline-none" />
+                          </div>
+                          <button type="button" onClick={handleSetPin} disabled={verifying}
+                            className="bg-emerald-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-emerald-700 disabled:bg-slate-300 flex-shrink-0">
+                            {verifying ? '...' : '설정'}
+                          </button>
+                        </div>
+                        {pinError && <p className="text-xs text-red-500 mt-2">{pinError}</p>}
+                      </div>
+                    ) : (
+                      /* 기존 사용자: 비밀번호 인증 */
+                      <div>
+                        <div className="flex gap-3">
+                          <input type="password" value={pin} onChange={e => setPin(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleVerifyPin())}
+                            maxLength={8} placeholder="비밀번호 입력"
+                            className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 outline-none"
+                            autoFocus
+                          />
+                          <button type="button" onClick={handleVerifyPin} disabled={verifying}
+                            className="bg-blue-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300 flex-shrink-0">
+                            {verifying ? '...' : '인증'}
+                          </button>
+                        </div>
+                        {pinError && <p className="text-xs text-red-500 mt-2">{pinError}</p>}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* 인증 완료 */
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-emerald-600 text-lg">✓</span>
                   <span className="font-semibold text-emerald-800">{student.name}</span>
-                  <span className="text-emerald-600 ml-2 text-xs">{student.class_name}</span>
+                  <span className="text-emerald-600 text-xs">{student.class_name}</span>
                 </div>
-              )}
-            </div>
-            {lookupError && (
-              <p className="text-xs text-red-500 mt-2">{lookupError}</p>
+                <span className="text-xs text-emerald-500">인증 완료</span>
+              </div>
             )}
           </div>
 
-          {/* 실천 유형 (프리셋 없을 때만 선택) */}
+          {/* Step 2: 실천 유형 (프리셋 없을 때만) */}
           {!hasPreset && (
-            <div className="bg-white rounded-xl border p-5">
+            <div className={`bg-white rounded-xl border p-5 ${!student ? 'opacity-50 pointer-events-none' : ''}`}>
+              <label className="text-sm font-semibold text-slate-700 block mb-3">Step 2. 실천 유형 선택</label>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-2">실천 유형</label>
+                  <label className="text-xs text-slate-500 block mb-1">실천 유형</label>
                   <select value={practiceType} onChange={e => setPracticeType(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 outline-none">
                     <option value="">선택하세요</option>
@@ -175,7 +296,7 @@ function SubmitForm() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-2">차시 (선택)</label>
+                  <label className="text-xs text-slate-500 block mb-1">차시 (선택)</label>
                   <input type="text" value={session} onChange={e => setSession(e.target.value)}
                     placeholder="예: 8차시"
                     className="w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 outline-none" />
@@ -184,10 +305,12 @@ function SubmitForm() {
             </div>
           )}
 
-          {/* 산출물 입력 */}
-          <div className="bg-white rounded-xl border p-5">
+          {/* Step 3: 산출물 입력 */}
+          <div className={`bg-white rounded-xl border p-5 ${!student ? 'opacity-50 pointer-events-none' : ''}`}>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-semibold text-slate-700">산출물 내용</label>
+              <label className="text-sm font-semibold text-slate-700">
+                {hasPreset ? 'Step 2' : 'Step 3'}. 산출물 내용
+              </label>
               <span className="text-xs text-slate-400">{rawText.length}자</span>
             </div>
             <textarea
