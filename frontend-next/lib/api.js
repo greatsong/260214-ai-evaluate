@@ -1,7 +1,8 @@
 import axios from 'axios';
 import {
   demoStudents, demoArtifacts, demoEvaluations,
-  demoGrowthAnalysis, demoPortfolio, demoSchoolRecord
+  demoGrowthAnalysis, demoPortfolio, demoSchoolRecord,
+  demoReflections
 } from './demoData';
 
 const api = axios.create({
@@ -218,6 +219,35 @@ export async function requestSchoolRecord(data) {
     return demoSchoolRecord;
   }
   return api.post('/school-record', data).then(r => r.data);
+}
+
+// ============================================================
+// 피드백 성찰 (PAIRR)
+// ============================================================
+
+export async function getReflection(artifactId) {
+  if (_demoMode) {
+    return demoReflections.find(r => r.artifact_id === Number(artifactId)) || null;
+  }
+  try {
+    const res = await api.get(`/reflection?artifact_id=${artifactId}`);
+    return res.data;
+  } catch { return null; }
+}
+
+export async function saveReflection(data) {
+  if (_demoMode) {
+    const existing = demoReflections.findIndex(r => r.artifact_id === data.artifact_id);
+    const reflection = {
+      id: existing >= 0 ? demoReflections[existing].id : (demoReflections.length + 1),
+      ...data,
+      created_at: new Date().toISOString(),
+    };
+    if (existing >= 0) demoReflections[existing] = reflection;
+    else demoReflections.push(reflection);
+    return reflection;
+  }
+  return api.post('/reflection', data).then(r => r.data);
 }
 
 // ============================================================

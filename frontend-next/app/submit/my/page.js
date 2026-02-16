@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { getArtifacts, getEvaluations } from '@/lib/api';
+import { getArtifacts, getEvaluations, getReflection, saveReflection } from '@/lib/api';
 import { PRACTICE_TYPES } from '@/lib/constants';
 
 export default function MySubmissionsPage() {
@@ -11,6 +11,10 @@ export default function MySubmissionsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedArtifact, setSelectedArtifact] = useState(null);
+  const [reflection, setReflection] = useState(null);
+  const [reflectionForm, setReflectionForm] = useState({ agree: '', disagree: '', next_time: '' });
+  const [showReflectionForm, setShowReflectionForm] = useState(false);
+  const [savingReflection, setSavingReflection] = useState(false);
 
   const handleLookup = async () => {
     if (!studentNumber || studentNumber.length < 3) return;
@@ -116,7 +120,14 @@ export default function MySubmissionsPage() {
                     const ev = evaluations[a.id];
                     return (
                       <div key={a.id}
-                        onClick={() => setSelectedArtifact(a)}
+                        onClick={async () => {
+                          setSelectedArtifact(a);
+                          setShowReflectionForm(false);
+                          const ref = await getReflection(a.id);
+                          setReflection(ref);
+                          if (ref) setReflectionForm({ agree: ref.agree, disagree: ref.disagree || '', next_time: ref.next_time });
+                          else setReflectionForm({ agree: '', disagree: '', next_time: '' });
+                        }}
                         className={`p-3 rounded-lg cursor-pointer text-sm transition-colors border ${
                           selectedArtifact?.id === a.id
                             ? 'bg-blue-50 border-blue-400'
@@ -230,6 +241,98 @@ export default function MySubmissionsPage() {
                               </>
                             );
                           })()}
+                          {/* 피드백 성찰 */}
+                          <div className="bg-white rounded-xl border p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-semibold">피드백 성찰</h4>
+                              <span className="text-xs text-slate-400">PAIRR 모델</span>
+                            </div>
+
+                            {reflection && !showReflectionForm ? (
+                              <div className="space-y-3">
+                                <div className="bg-emerald-50 rounded-lg p-3">
+                                  <p className="text-xs font-semibold text-emerald-700 mb-1">공감되는 부분</p>
+                                  <p className="text-sm text-emerald-800">{reflection.agree}</p>
+                                </div>
+                                {reflection.disagree && (
+                                  <div className="bg-orange-50 rounded-lg p-3">
+                                    <p className="text-xs font-semibold text-orange-700 mb-1">다르게 생각하는 부분</p>
+                                    <p className="text-sm text-orange-800">{reflection.disagree}</p>
+                                  </div>
+                                )}
+                                <div className="bg-indigo-50 rounded-lg p-3">
+                                  <p className="text-xs font-semibold text-indigo-700 mb-1">다음에 바꿀 점</p>
+                                  <p className="text-sm text-indigo-800">{reflection.next_time}</p>
+                                </div>
+                                <button onClick={() => setShowReflectionForm(true)}
+                                  className="text-xs text-slate-400 hover:text-blue-600">수정하기</button>
+                              </div>
+                            ) : (
+                              <>
+                                {!showReflectionForm && !reflection && (
+                                  <p className="text-xs text-slate-500 mb-3">
+                                    피드백을 읽고 성찰을 작성하면, 다음 산출물의 질이 높아집니다.
+                                  </p>
+                                )}
+                                {showReflectionForm || !reflection ? (
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-600 block mb-1">
+                                        이 피드백에서 가장 공감되는 부분은? <span className="text-red-400">*</span>
+                                      </label>
+                                      <textarea value={reflectionForm.agree}
+                                        onChange={e => setReflectionForm(f => ({ ...f, agree: e.target.value }))}
+                                        className="w-full border rounded-lg p-2.5 text-sm resize-none focus:ring-2 focus:ring-blue-300 outline-none"
+                                        rows={2} placeholder="피드백 중 맞다고 느낀 부분을 적어주세요" />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-600 block mb-1">
+                                        다르게 생각하는 부분이 있다면? <span className="text-slate-300">(선택)</span>
+                                      </label>
+                                      <textarea value={reflectionForm.disagree}
+                                        onChange={e => setReflectionForm(f => ({ ...f, disagree: e.target.value }))}
+                                        className="w-full border rounded-lg p-2.5 text-sm resize-none focus:ring-2 focus:ring-blue-300 outline-none"
+                                        rows={2} placeholder="피드백과 다른 의견이 있으면 적어주세요" />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-600 block mb-1">
+                                        다음에 같은 과제를 쓴다면 뭘 바꿀 건가요? <span className="text-red-400">*</span>
+                                      </label>
+                                      <textarea value={reflectionForm.next_time}
+                                        onChange={e => setReflectionForm(f => ({ ...f, next_time: e.target.value }))}
+                                        className="w-full border rounded-lg p-2.5 text-sm resize-none focus:ring-2 focus:ring-blue-300 outline-none"
+                                        rows={2} placeholder="구체적인 개선 계획을 적어주세요" />
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={async () => {
+                                          if (!reflectionForm.agree.trim() || !reflectionForm.next_time.trim()) return;
+                                          setSavingReflection(true);
+                                          try {
+                                            const saved = await saveReflection({
+                                              artifact_id: selectedArtifact.id,
+                                              student_id: student.id,
+                                              ...reflectionForm,
+                                            });
+                                            setReflection(saved);
+                                            setShowReflectionForm(false);
+                                          } catch { /* skip */ }
+                                          finally { setSavingReflection(false); }
+                                        }}
+                                        disabled={savingReflection || !reflectionForm.agree.trim() || !reflectionForm.next_time.trim()}
+                                        className="bg-blue-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-blue-700 disabled:bg-slate-300">
+                                        {savingReflection ? '저장 중...' : '성찰 저장'}
+                                      </button>
+                                      {showReflectionForm && (
+                                        <button onClick={() => setShowReflectionForm(false)}
+                                          className="text-xs text-slate-400 hover:text-slate-600 px-3 py-2">취소</button>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : null}
+                              </>
+                            )}
+                          </div>
                         </div>
                       ) : (
                         <div className="bg-slate-50 rounded-xl border border-dashed p-6 text-center text-sm text-slate-400">
