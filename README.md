@@ -1,5 +1,7 @@
 # AI 교실 실천 평가 시스템 v2.0
 
+> **배포 URL**: https://frontend-next-77o4bdy96-greatsongs-projects.vercel.app
+
 고등학교 AI·정보 교과에서 학생들의 **실천 활동 산출물**을 Claude AI로 평가하고, 성장 과정을 추적하며, 생기부 초안까지 생성하는 교사용 평가 지원 시스템입니다.
 
 ---
@@ -119,7 +121,7 @@
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/your-username/260214-ai-evaluate.git
+git clone https://github.com/greatsong/260214-ai-evaluate.git
 cd 260214-ai-evaluate
 
 # 2. 백엔드 환경변수 설정
@@ -238,7 +240,7 @@ JSON 파싱 (코드블록 → 중첩 괄호 매칭)
 POST /api/evaluate
 {
   "practice_type": "p3_definition",
-  "artifact_text": "4교시 종료 시각(12:10)과 급식 시작 시각(12:00)의 10분 차이로...",
+  "raw_text": "4교시 종료 시각(12:10)과 급식 시작 시각(12:00)의 10분 차이로...",
   "student_name": "김민준"
 }
 ```

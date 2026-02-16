@@ -36,7 +36,7 @@ export default function GrowthPage() {
       const result = await requestGrowthAnalysis({
         student_id: parseInt(selectedStudent),
         practice_type: selectedPractice,
-        artifact_ids: artifacts.map(a => a.id)
+        artifacts: artifacts
       });
       setAnalysis(result.analysis);
     } catch (e) {

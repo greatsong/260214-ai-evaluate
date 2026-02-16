@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getStudents, requestPortfolioFeedback, requestSchoolRecord } from '@/lib/api';
+import { getStudents, getArtifacts, requestPortfolioFeedback, requestSchoolRecord } from '@/lib/api';
 import { FACTRadarChart } from '@/components/Charts';
 import LevelBadge from '@/components/LevelBadge';
 
@@ -22,9 +22,16 @@ export default function PortfolioPage() {
       setLoading(true);
       setPortfolio(null);
       setSchoolRecord(null);
+      const studentArtifacts = await getArtifacts({ student_id: studentObj.id });
+      if (studentArtifacts.length === 0) {
+        alert('해당 학생의 산출물이 없습니다. 먼저 산출물을 입력하세요.');
+        setLoading(false);
+        return;
+      }
       const result = await requestPortfolioFeedback({
         student_id: studentObj.id,
-        student_name: studentObj.name
+        student_name: studentObj.name,
+        artifacts: studentArtifacts
       });
       setPortfolio(result);
     } catch (e) {
@@ -36,9 +43,11 @@ export default function PortfolioPage() {
     if (!studentObj) return;
     try {
       setRecordLoading(true);
+      const studentArtifacts = await getArtifacts({ student_id: studentObj.id });
       const result = await requestSchoolRecord({
         student_id: studentObj.id,
         student_name: studentObj.name,
+        artifacts: studentArtifacts,
         portfolio_result: portfolio
       });
       setSchoolRecord(result);

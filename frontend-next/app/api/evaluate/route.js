@@ -9,14 +9,14 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { practice_type, artifact_text, student_name } = body;
+    const { practice_type, raw_text, student_name } = body;
 
-    if (!practice_type || !artifact_text) {
-      return NextResponse.json({ error: 'practice_type과 artifact_text가 필요합니다.' }, { status: 400 });
+    if (!practice_type || !raw_text) {
+      return NextResponse.json({ error: 'practice_type과 raw_text가 필요합니다.' }, { status: 400 });
     }
 
     const engine = new EvaluationEngine(apiKey);
-    const result = await engine.evaluateArtifact(practice_type, artifact_text, student_name);
+    const result = await engine.evaluateArtifact(practice_type, raw_text, student_name);
 
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 });
