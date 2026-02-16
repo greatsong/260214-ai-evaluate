@@ -27,11 +27,11 @@ export async function POST(request) {
   student.pin = pin;
 
   return NextResponse.json({
-    success: true,
     id: student.id,
     name: student.name,
     class_name: student.class_name,
     number: student.number,
+    has_pin: true,
     verified: true,
   });
 }

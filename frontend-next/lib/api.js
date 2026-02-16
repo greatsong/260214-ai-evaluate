@@ -111,7 +111,7 @@ export async function getStudents() {
 
 export async function addStudent(data) {
   if (_demoMode) {
-    const newId = Math.max(...demoStudents.map(s => s.id)) + 1;
+    const newId = demoStudents.length > 0 ? Math.max(...demoStudents.map(s => s.id)) + 1 : 1;
     const s = { id: newId, ...data, created_at: new Date().toISOString() };
     demoStudents.push(s);
     return s;
@@ -149,7 +149,7 @@ export async function getArtifacts(params = {}) {
 
 export async function addArtifact(data) {
   if (_demoMode) {
-    const newId = Math.max(...demoArtifacts.map(a => a.id)) + 1;
+    const newId = demoArtifacts.length > 0 ? Math.max(...demoArtifacts.map(a => a.id)) + 1 : 1;
     const a = { id: newId, ...data, created_at: new Date().toISOString() };
     demoArtifacts.push(a);
     return a;

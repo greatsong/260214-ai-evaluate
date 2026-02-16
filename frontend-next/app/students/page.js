@@ -131,7 +131,7 @@ export default function StudentsPage() {
                 </tr>
               ))}
               {students.length === 0 && (
-                <tr><td colSpan="5" className="p-6 text-center text-slate-400">등록된 학생이 없습니다</td></tr>
+                <tr><td colSpan="6" className="p-6 text-center text-slate-400">등록된 학생이 없습니다</td></tr>
               )}
             </tbody>
           </table>
