@@ -36,4 +36,5 @@ export const NAV_ITEMS = [
   { href: '/growth', label: '성장 분석', icon: '📈' },
   { href: '/portfolio', label: '포트폴리오', icon: '🎯' },
   { href: '/class', label: '학급 현황', icon: '📊' },
+  { href: '/guide-teacher', label: '교사 가이드', icon: '📖' },
 ];
