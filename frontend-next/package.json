@@ -1,0 +1,23 @@
+{
+  "name": "ai-assessment-frontend",
+  "version": "2.0.0",
+  "description": "AI 교실 실천 평가 시스템 프론트엔드",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
+    "axios": "^1.13.5",
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^3.7.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19"
+  }
+}
