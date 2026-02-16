@@ -1,15 +1,20 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { getStudents, getArtifacts, addArtifact, deleteArtifact } from '@/lib/api';
-import { PRACTICE_TYPES } from '@/lib/constants';
+import { PRACTICE_TYPES, TEACHER_OBSERVATION_TYPES } from '@/lib/constants';
+import rubrics from '@/lib/rubrics';
 
 export default function ArtifactsPage() {
   const [students, setStudents] = useState([]);
   const [artifacts, setArtifacts] = useState([]);
   const [form, setForm] = useState({
     student_id: '', practice_type: 'p1_discomfort', raw_text: '',
-    date: new Date().toISOString().split('T')[0], session: ''
+    date: new Date().toISOString().split('T')[0], session: '',
+    observation_scores: {}, teacher_memo: ''
   });
+
+  const isObservationType = TEACHER_OBSERVATION_TYPES.includes(form.practice_type);
+  const observationRubric = isObservationType ? rubrics[form.practice_type] : null;
   const [filter, setFilter] = useState({ student_id: '', practice_type: '' });
 
   const fetchData = useCallback(async () => {
@@ -24,13 +29,34 @@ export default function ArtifactsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.student_id || !form.raw_text.trim()) return alert('학생과 산출물 내용을 입력하세요.');
-    if (form.raw_text.trim().length < 10) return alert('산출물이 너무 짧습니다 (최소 10자).');
-    try {
-      await addArtifact({ ...form, student_id: parseInt(form.student_id) });
-      setForm({ ...form, raw_text: '', session: '' });
-      fetchData();
-    } catch (err) { alert('등록 오류: ' + err.message); }
+    if (!form.student_id) return alert('학생을 선택하세요.');
+
+    if (isObservationType) {
+      const items = Object.keys(observationRubric.items);
+      const scored = items.filter(k => form.observation_scores[k]);
+      if (scored.length < items.length) return alert('모든 항목의 점수를 입력하세요.');
+      // 관찰 기록을 raw_text로 변환
+      const lines = items.map(k => {
+        const item = observationRubric.items[k];
+        const score = form.observation_scores[k];
+        return `[${item.name}] ${score}점 — ${item.levels[score]}`;
+      });
+      if (form.teacher_memo.trim()) lines.push(`\n교사 메모: ${form.teacher_memo}`);
+      const raw_text = `[교사 관찰 기록] ${observationRubric.name}\n\n${lines.join('\n')}`;
+      try {
+        await addArtifact({ student_id: parseInt(form.student_id), practice_type: form.practice_type, date: form.date, session: form.session, raw_text });
+        setForm({ ...form, observation_scores: {}, teacher_memo: '', session: '' });
+        fetchData();
+      } catch (err) { alert('등록 오류: ' + err.message); }
+    } else {
+      if (!form.raw_text.trim()) return alert('산출물 내용을 입력하세요.');
+      if (form.raw_text.trim().length < 10) return alert('산출물이 너무 짧습니다 (최소 10자).');
+      try {
+        await addArtifact({ ...form, student_id: parseInt(form.student_id) });
+        setForm({ ...form, raw_text: '', session: '' });
+        fetchData();
+      } catch (err) { alert('등록 오류: ' + err.message); }
+    }
   };
 
   const handleDelete = async (id) => {
@@ -62,19 +88,68 @@ export default function ArtifactsPage() {
             <input placeholder="차시" value={form.session} onChange={e => setForm({...form, session: e.target.value})}
               className="border rounded px-3 py-2 text-sm" />
           </div>
-          <textarea
-            placeholder="학생 산출물 내용을 입력하세요... (최소 10자)"
-            value={form.raw_text}
-            onChange={e => setForm({...form, raw_text: e.target.value})}
-            rows={8}
-            className="w-full border rounded px-3 py-2 text-sm resize-y"
-          />
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-slate-400">{form.raw_text.length}자</span>
-            <button type="submit" className="bg-emerald-600 text-white rounded px-6 py-2 text-sm hover:bg-emerald-700">
-              등록
-            </button>
-          </div>
+          {isObservationType && observationRubric ? (
+            <div className="space-y-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-xs font-semibold text-amber-700">교사 관찰 기록 모드</p>
+                <p className="text-xs text-amber-600 mt-0.5">{observationRubric.name} — 각 항목을 1~4점으로 평가하세요.</p>
+              </div>
+              {Object.entries(observationRubric.items).map(([key, item]) => (
+                <div key={key} className="border rounded-lg p-3">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="text-sm font-semibold">{item.name}</p>
+                      <p className="text-xs text-slate-500">{item.description}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map(n => (
+                        <button key={n} type="button"
+                          onClick={() => setForm(f => ({ ...f, observation_scores: { ...f.observation_scores, [key]: n } }))}
+                          className={`w-8 h-8 rounded text-sm font-bold transition-colors ${
+                            form.observation_scores[key] === n
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                          }`}>{n}</button>
+                      ))}
+                    </div>
+                  </div>
+                  {form.observation_scores[key] && (
+                    <p className="text-xs text-blue-600 bg-blue-50 rounded p-2">
+                      {item.levels[form.observation_scores[key]]}
+                    </p>
+                  )}
+                </div>
+              ))}
+              <textarea
+                placeholder="교사 메모 (선택)"
+                value={form.teacher_memo}
+                onChange={e => setForm({...form, teacher_memo: e.target.value})}
+                rows={3}
+                className="w-full border rounded px-3 py-2 text-sm resize-y"
+              />
+              <div className="flex justify-end">
+                <button type="submit" className="bg-emerald-600 text-white rounded px-6 py-2 text-sm hover:bg-emerald-700">
+                  관찰 기록 등록
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <textarea
+                placeholder="학생 산출물 내용을 입력하세요... (최소 10자)"
+                value={form.raw_text}
+                onChange={e => setForm({...form, raw_text: e.target.value})}
+                rows={8}
+                className="w-full border rounded px-3 py-2 text-sm resize-y"
+              />
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-400">{form.raw_text.length}자</span>
+                <button type="submit" className="bg-emerald-600 text-white rounded px-6 py-2 text-sm hover:bg-emerald-700">
+                  등록
+                </button>
+              </div>
+            </>
+          )}
         </form>
       </div>
 

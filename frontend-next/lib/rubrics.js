@@ -156,6 +156,64 @@ const rubrics = {
     }
   },
 
+  p5_oral: {
+    name: "실천 5: 구술 면접",
+    maxScore: 16,
+    levelThresholds: { 탁월: 14, 우수: 10, 보통: 6 },
+    teacherObservation: true,
+    items: {
+      core_understanding: {
+        name: "핵심 이해도",
+        description: "프로젝트의 기술적 선택을 자기 말로 설명하는가",
+        levels: { 4: "기술적 선택의 이유를 자기 말로 명확히 설명", 3: "설명은 하지만 일부 용어를 정확히 모름", 2: "단편적 설명, 전체 구조 파악 부족", 1: "설명 불가 또는 AI 답변 반복" }
+      },
+      follow_up: {
+        name: "후속 질문 대응",
+        description: "'왜 그렇게 했어?'에 논리적으로 답하는가",
+        levels: { 4: "후속 질문에 논리적·구체적으로 답변", 3: "답변하지만 깊이 부족", 2: "당황하거나 모호하게 답변", 1: "답변 불가" }
+      },
+      ai_distinction: {
+        name: "AI와의 차별점",
+        description: "AI 제안과 자기 결정의 차이를 설명하는가",
+        levels: { 4: "AI 제안 vs 자기 결정을 구체적 사례로 설명", 3: "차이를 인식하나 사례가 부족", 2: "'AI가 해줬어요' 수준", 1: "AI 사용 여부 자체를 설명 못함" }
+      },
+      presentation: {
+        name: "발표 태도",
+        description: "자신감, 논리적 흐름, 시간 관리",
+        levels: { 4: "자신감 있고 논리적 흐름이 명확", 3: "대체로 안정적이나 일부 흐름 끊김", 2: "긴장하여 내용 전달이 어려움", 1: "발표 준비 부족" }
+      }
+    }
+  },
+
+  p6_sharing: {
+    name: "실천 6: 공유 실패 루틴",
+    maxScore: 16,
+    levelThresholds: { 탁월: 14, 우수: 10, 보통: 6 },
+    teacherObservation: true,
+    items: {
+      failure_specificity: {
+        name: "실패 사례 구체성",
+        description: "무엇이 안 됐는지 구체적으로 공유하는가",
+        levels: { 4: "코드/하드웨어 등 구체적 실패 상황 + 재현 조건 설명", 3: "실패 상황은 설명하나 재현 조건 부족", 2: "'안 됐어요' 수준", 1: "공유하지 않음" }
+      },
+      cause_analysis: {
+        name: "원인 분석",
+        description: "왜 안 됐는지 분석하는가",
+        levels: { 4: "근본 원인을 분석하고 가설을 세움", 3: "원인을 추측하나 검증 부족", 2: "'모르겠어요' 수준", 1: "분석 시도 없음" }
+      },
+      discussion_contribution: {
+        name: "토론 기여도",
+        description: "다른 모둠의 실패에 건설적 피드백을 주는가",
+        levels: { 4: "구체적 해결 아이디어나 유사 경험 공유", 3: "공감하며 간단한 의견 제시", 2: "듣기만 함", 1: "참여하지 않음" }
+      },
+      improvement_plan: {
+        name: "개선 방안",
+        description: "공유를 통해 얻은 개선 아이디어가 있는가",
+        levels: { 4: "다른 모둠 피드백을 반영한 구체적 개선 계획", 3: "개선 방향은 있으나 구체성 부족", 2: "'다시 해볼게요' 수준", 1: "개선 계획 없음" }
+      }
+    }
+  },
+
   p7_reflection: {
     name: "실천 7: 성장 성찰문",
     maxScore: 16,

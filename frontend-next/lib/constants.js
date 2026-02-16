@@ -3,6 +3,8 @@ export const PRACTICE_TYPES = {
   p2_comparison: '실천2: AI와 비교',
   p3_definition: '실천3: 문제 정의서',
   p4_ai_log: '실천4: AI 활용 일지',
+  p5_oral: '실천5: 구술 면접',
+  p6_sharing: '실천6: 공유 실패 루틴',
   p7_reflection: '실천7: 성장 성찰',
 };
 
@@ -11,8 +13,13 @@ export const PRACTICE_SHORT = {
   p2_comparison: 'P2',
   p3_definition: 'P3',
   p4_ai_log: 'P4',
+  p5_oral: 'P5',
+  p6_sharing: 'P6',
   p7_reflection: 'P7',
 };
+
+// P5/P6는 교사 관찰 기록 (텍스트 입력이 아닌 체크리스트)
+export const TEACHER_OBSERVATION_TYPES = ['p5_oral', 'p6_sharing'];
 
 export const LEVEL_COLORS = {
   '탁월': 'bg-emerald-100 text-emerald-800 border-emerald-300',

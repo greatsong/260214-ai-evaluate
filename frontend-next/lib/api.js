@@ -71,6 +71,24 @@ const demoRubrics = {
       own_decision: { name: "자기 결정" },
     }
   },
+  p5_oral: {
+    name: "실천 5: 구술 면접", maxScore: 16, teacherObservation: true,
+    items: {
+      core_understanding: { name: "핵심 이해도" },
+      follow_up: { name: "후속 질문 대응" },
+      ai_distinction: { name: "AI와의 차별점" },
+      presentation: { name: "발표 태도" },
+    }
+  },
+  p6_sharing: {
+    name: "실천 6: 공유 실패 루틴", maxScore: 16, teacherObservation: true,
+    items: {
+      failure_specificity: { name: "실패 사례 구체성" },
+      cause_analysis: { name: "원인 분석" },
+      discussion_contribution: { name: "토론 기여도" },
+      improvement_plan: { name: "개선 방안" },
+    }
+  },
   p7_reflection: {
     name: "실천 7: 성장 성찰문", maxScore: 16,
     items: {
