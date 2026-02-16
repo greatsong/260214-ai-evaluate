@@ -12,6 +12,7 @@ function SubmitForm() {
   const presetDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
 
   const [studentNumber, setStudentNumber] = useState('');
+  const [pin, setPin] = useState('');
   const [student, setStudent] = useState(null);
   const [lookupError, setLookupError] = useState('');
   const [lookingUp, setLookingUp] = useState(false);
@@ -28,11 +29,12 @@ function SubmitForm() {
 
   const lookupStudent = async () => {
     if (!studentNumber || studentNumber.length < 3) return;
+    if (!pin || pin.length < 4) { setLookupError('비밀번호 4자리를 입력하세요.'); return; }
     setLookingUp(true);
     setLookupError('');
     setStudent(null);
     try {
-      const res = await fetch(`/api/students/lookup?number=${studentNumber}`);
+      const res = await fetch(`/api/students/lookup?number=${studentNumber}&pin=${pin}`);
       const data = await res.json();
       if (res.ok) {
         setStudent(data);
@@ -45,15 +47,6 @@ function SubmitForm() {
       setLookingUp(false);
     }
   };
-
-  useEffect(() => {
-    if (studentNumber.length >= 5) {
-      lookupStudent();
-    } else {
-      setStudent(null);
-      setLookupError('');
-    }
-  }, [studentNumber]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -132,27 +125,39 @@ function SubmitForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* 학번 입력 */}
           <div className="bg-white rounded-xl border p-5">
-            <label className="text-sm font-semibold text-slate-700 block mb-2">학번</label>
+            <label className="text-sm font-semibold text-slate-700 block mb-2">본인 확인</label>
             <div className="flex gap-3 items-center">
               <input
                 type="text"
                 value={studentNumber}
-                onChange={e => setStudentNumber(e.target.value)}
-                placeholder="학번 입력 (예: 10101)"
+                onChange={e => { setStudentNumber(e.target.value); setStudent(null); setLookupError(''); }}
+                placeholder="학번 (예: 10101)"
                 className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none"
                 autoFocus
               />
-              {lookingUp && <span className="text-xs text-slate-400">조회 중...</span>}
+              <input
+                type="password"
+                value={pin}
+                onChange={e => setPin(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && lookupStudent()}
+                placeholder="비밀번호"
+                maxLength={4}
+                className="border rounded-lg px-4 py-2.5 text-sm w-28 focus:ring-2 focus:ring-blue-300 outline-none"
+              />
+              <button type="button" onClick={lookupStudent} disabled={lookingUp}
+                className="bg-blue-600 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300 flex-shrink-0">
+                {lookingUp ? '...' : '확인'}
+              </button>
               {student && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-sm">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-sm flex-shrink-0">
                   <span className="font-semibold text-emerald-800">{student.name}</span>
                   <span className="text-emerald-600 ml-2 text-xs">{student.class_name}</span>
                 </div>
               )}
-              {lookupError && (
-                <span className="text-xs text-red-500">{lookupError}</span>
-              )}
             </div>
+            {lookupError && (
+              <p className="text-xs text-red-500 mt-2">{lookupError}</p>
+            )}
           </div>
 
           {/* 실천 유형 (프리셋 없을 때만 선택) */}

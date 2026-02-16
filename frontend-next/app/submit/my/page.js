@@ -5,6 +5,7 @@ import { PRACTICE_TYPES } from '@/lib/constants';
 
 export default function MySubmissionsPage() {
   const [studentNumber, setStudentNumber] = useState('');
+  const [pin, setPin] = useState('');
   const [student, setStudent] = useState(null);
   const [artifacts, setArtifacts] = useState([]);
   const [evaluations, setEvaluations] = useState({});
@@ -18,10 +19,11 @@ export default function MySubmissionsPage() {
 
   const handleLookup = async () => {
     if (!studentNumber || studentNumber.length < 3) return;
+    if (!pin || pin.length < 4) { setError('비밀번호 4자리를 입력하세요.'); return; }
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`/api/students/lookup?number=${studentNumber}`);
+      const res = await fetch(`/api/students/lookup?number=${studentNumber}&pin=${pin}`);
       const data = await res.json();
       if (!res.ok) { setError(data.error); setLoading(false); return; }
       setStudent(data);
@@ -74,8 +76,9 @@ export default function MySubmissionsPage() {
         {/* 학번 입력 */}
         {!student ? (
           <div className="bg-white rounded-xl border p-8 text-center">
-            <h2 className="text-lg font-bold mb-4">학번을 입력하세요</h2>
-            <div className="flex gap-3 max-w-sm mx-auto">
+            <h2 className="text-lg font-bold mb-1">학번과 비밀번호를 입력하세요</h2>
+            <p className="text-xs text-slate-400 mb-4">비밀번호 초기값: 학번 뒤 4자리</p>
+            <div className="flex gap-3 max-w-md mx-auto">
               <input
                 type="text" value={studentNumber}
                 onChange={e => setStudentNumber(e.target.value)}
@@ -83,6 +86,14 @@ export default function MySubmissionsPage() {
                 placeholder="학번 (예: 10101)"
                 className="border rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-blue-300 outline-none"
                 autoFocus
+              />
+              <input
+                type="password" value={pin}
+                onChange={e => setPin(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleLookup()}
+                placeholder="비밀번호"
+                maxLength={4}
+                className="border rounded-lg px-4 py-2.5 text-sm w-28 focus:ring-2 focus:ring-blue-300 outline-none"
               />
               <button onClick={handleLookup} disabled={loading}
                 className="bg-blue-600 text-white rounded-lg px-6 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300">

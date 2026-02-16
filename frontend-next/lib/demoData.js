@@ -6,11 +6,11 @@
 // 학생
 // ============================================================
 export const demoStudents = [
-  { id: 1, student_number: '10101', name: '김민준', class_name: '1-1', number: 1, created_at: '2025-03-02' },
-  { id: 2, student_number: '10105', name: '이서연', class_name: '1-1', number: 5, created_at: '2025-03-02' },
-  { id: 3, student_number: '10212', name: '박지호', class_name: '1-2', number: 12, created_at: '2025-03-02' },
-  { id: 4, student_number: '10218', name: '최수아', class_name: '1-2', number: 18, created_at: '2025-03-02' },
-  { id: 5, student_number: '10308', name: '정예준', class_name: '1-3', number: 8, created_at: '2025-03-02' },
+  { id: 1, student_number: '10101', name: '김민준', class_name: '1-1', number: 1, pin: '0101', created_at: '2025-03-02' },
+  { id: 2, student_number: '10105', name: '이서연', class_name: '1-1', number: 5, pin: '0105', created_at: '2025-03-02' },
+  { id: 3, student_number: '10212', name: '박지호', class_name: '1-2', number: 12, pin: '0212', created_at: '2025-03-02' },
+  { id: 4, student_number: '10218', name: '최수아', class_name: '1-2', number: 18, pin: '0218', created_at: '2025-03-02' },
+  { id: 5, student_number: '10308', name: '정예준', class_name: '1-3', number: 8, pin: '0308', created_at: '2025-03-02' },
 ];
 
 // ============================================================
