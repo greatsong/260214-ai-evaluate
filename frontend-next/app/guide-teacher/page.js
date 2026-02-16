@@ -34,6 +34,9 @@ const sections = [
           <h3 className="text-lg font-bold mb-4">FACT 평가 프레임워크</h3>
           <p className="text-sm text-slate-600 mb-4">
             학생의 AI 활용 역량을 4가지 축으로 종합 평가합니다. 포트폴리오 페이지에서 자동으로 분석됩니다.
+            <span className="text-xs text-slate-400 block mt-1">
+              출처: Elshall & Badir (2025). "The FACT assessment in environmental data science education." <em>Frontiers in Education</em>, 10, 1596462.
+            </span>
           </p>
           <div className="grid grid-cols-4 gap-3">
             {[
@@ -63,20 +66,23 @@ const sections = [
       <div className="space-y-6">
         <div className="bg-white rounded-xl border p-6">
           <h3 className="text-lg font-bold mb-4">한 학기 실천 활동 로드맵</h3>
+          <p className="text-xs text-slate-500 mb-4">각 실천 옆의 뱃지는 AI Assessment Scale(AIAS) 수준입니다. Perkins, Furze, Roe & MacVaugh (2024).</p>
           <div className="relative">
             {[
-              { week: '1주차', practice: '실천 1: 불편함 수집', desc: '일상의 불편함을 관찰하고, 구체적으로 기록하고, 분류합니다.', color: 'border-blue-400 bg-blue-50', tip: '학생들이 "학교"처럼 추상적으로 쓰지 않도록, 수치(몇 명, 몇 분, 몇 번)를 넣으라고 안내하세요.' },
-              { week: '2주차', practice: '실천 2: AI와 비교하기', desc: 'AI에게 같은 질문을 하고, 내가 찾은 것과 비교합니다.', color: 'border-emerald-400 bg-emerald-50', tip: '"AI와 겹치는 것"보다 "나만 찾은 것"이 핵심입니다. 현장 맥락(우리 학교만의 상황)을 강조하세요.' },
-              { week: '3-4주차', practice: '실천 3: 문제 정의서', desc: '7개 항목으로 문제를 체계적으로 정의합니다. AI 비판적 분석 포함.', color: 'border-purple-400 bg-purple-50', tip: '가장 중요한 항목은 6번(비판적 사고)입니다. "AI가 모르는 것"을 찾게 하세요.' },
-              { week: '5-8주차', practice: '실천 4: AI 활용 일지 (상시)', desc: '프로젝트 진행 중 AI를 사용할 때마다 기록합니다.', color: 'border-amber-400 bg-amber-50', tip: '가장 중요한 평가 자료입니다. "뭘 바꿨는지 + 왜 바꿨는지"를 반드시 쓰게 하세요. 시간에 따른 성장이 핵심.' },
-              { week: '중간 2회', practice: '실천 6: 공유 실패 루틴', desc: '모둠 내에서 실패 경험과 배운 점을 공유합니다.', color: 'border-rose-400 bg-rose-50', tip: '실패를 부정적으로 보지 않는 분위기를 만드세요. "실패에서 뭘 배웠는지"가 중요합니다.' },
-              { week: '발표', practice: '실천 5: 3분 구술 면접', desc: 'AI 없이 자기 프로젝트를 설명합니다.', color: 'border-indigo-400 bg-indigo-50', tip: 'AI 도움 없이 핵심 개념을 설명할 수 있는지 확인합니다. FACT의 F(기초역량)와 C(개념적 이해)를 평가합니다.' },
-              { week: '학기말', practice: '실천 7: 성장 성찰문', desc: '한 학기 전체를 돌아보며 자기 변화를 분석합니다.', color: 'border-teal-400 bg-teal-50', tip: '첫 산출물과 마지막 산출물을 직접 인용하며 비교하게 하세요. 날짜와 원문 인용이 핵심입니다.' },
+              { week: '1주차', practice: '실천 1: 불편함 수집', aias: 'Level 1 · No AI', aiasColor: 'bg-red-100 text-red-700', lane: 'Lane 1', desc: '일상의 불편함을 관찰하고, 구체적으로 기록하고, 분류합니다.', color: 'border-blue-400 bg-blue-50', tip: '학생들이 "학교"처럼 추상적으로 쓰지 않도록, 수치(몇 명, 몇 분, 몇 번)를 넣으라고 안내하세요.' },
+              { week: '2주차', practice: '실천 2: AI와 비교하기', aias: 'Level 3 · Collaboration', aiasColor: 'bg-blue-100 text-blue-700', lane: 'Lane 2', desc: 'AI에게 같은 질문을 하고, 내가 찾은 것과 비교합니다.', color: 'border-emerald-400 bg-emerald-50', tip: '"AI와 겹치는 것"보다 "나만 찾은 것"이 핵심입니다. 현장 맥락(우리 학교만의 상황)을 강조하세요.' },
+              { week: '3-4주차', practice: '실천 3: 문제 정의서', aias: 'Level 3 · Collaboration', aiasColor: 'bg-blue-100 text-blue-700', lane: 'Lane 2', desc: '7개 항목으로 문제를 체계적으로 정의합니다. AI 비판적 분석 포함.', color: 'border-purple-400 bg-purple-50', tip: '가장 중요한 항목은 6번(비판적 사고)입니다. "AI가 모르는 것"을 찾게 하세요.' },
+              { week: '5-8주차', practice: '실천 4: AI 활용 일지 (상시)', aias: 'Level 4 · Full AI', aiasColor: 'bg-emerald-100 text-emerald-700', lane: 'Lane 2', desc: '프로젝트 진행 중 AI를 사용할 때마다 기록합니다.', color: 'border-amber-400 bg-amber-50', tip: '가장 중요한 평가 자료입니다. "뭘 바꿨는지 + 왜 바꿨는지"를 반드시 쓰게 하세요. 시간에 따른 성장이 핵심.' },
+              { week: '중간 2회', practice: '실천 6: 공유 실패 루틴', aias: 'Level 1 · No AI', aiasColor: 'bg-red-100 text-red-700', lane: 'Lane 1', desc: '모둠 내에서 실패 경험과 배운 점을 공유합니다.', color: 'border-rose-400 bg-rose-50', tip: '실패를 부정적으로 보지 않는 분위기를 만드세요. "실패에서 뭘 배웠는지"가 중요합니다.' },
+              { week: '발표', practice: '실천 5: 3분 구술 면접', aias: 'Level 1 · No AI', aiasColor: 'bg-red-100 text-red-700', lane: 'Lane 1', desc: 'AI 없이 자기 프로젝트를 설명합니다.', color: 'border-indigo-400 bg-indigo-50', tip: 'AI 도움 없이 핵심 개념을 설명할 수 있는지 확인합니다. FACT의 F(기초역량)와 C(개념적 이해)를 평가합니다.' },
+              { week: '학기말', practice: '실천 7: 성장 성찰문', aias: 'Level 1 · No AI', aiasColor: 'bg-red-100 text-red-700', lane: 'Lane 1', desc: '한 학기 전체를 돌아보며 자기 변화를 분석합니다.', color: 'border-teal-400 bg-teal-50', tip: '첫 산출물과 마지막 산출물을 직접 인용하며 비교하게 하세요. 날짜와 원문 인용이 핵심입니다.' },
             ].map((item, i) => (
               <div key={i} className={`border-l-4 ${item.color} rounded-r-lg p-4 mb-4`}>
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
                   <span className="text-xs font-bold bg-white rounded-full px-3 py-1 border">{item.week}</span>
                   <span className="font-semibold text-sm">{item.practice}</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${item.aiasColor}`}>{item.aias}</span>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{item.lane}</span>
                 </div>
                 <p className="text-sm text-slate-600 mb-2">{item.desc}</p>
                 <div className="bg-white bg-opacity-60 rounded p-2">
@@ -491,6 +497,150 @@ const sections = [
               공개 서버 대신 로컬 브로커를 선택하는 등 현실적 제약을 반영한 의사결정 능력을 보임.
             </div>
             <p className="text-xs text-slate-500 mt-2">373자 | 강조 역량: AI 비판적 활용, 문제 해결, 의사결정</p>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'research',
+    title: '학술 근거',
+    icon: '🔬',
+    content: () => (
+      <div className="space-y-6">
+        {/* AIAS */}
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="text-lg font-bold mb-2">AI Assessment Scale (AIAS)</h3>
+          <p className="text-xs text-slate-500 mb-4">Perkins, Furze, Roe & MacVaugh (2024). 전 세계 수백 개 학교에서 채택, 30개 이상 언어로 번역된 AI 평가 프레임워크.</p>
+          <p className="text-sm text-slate-600 mb-4">
+            AI 사용을 "금지/허용"의 이분법이 아니라 <strong>5단계 스펙트럼</strong>으로 봅니다. 각 과제에 어떤 수준이 허용되는지를 명시하면, "이것도 부정행위인가요?" 같은 모호함이 사라집니다.
+          </p>
+          <table className="w-full text-xs border-collapse mb-4">
+            <thead>
+              <tr className="bg-slate-50">
+                <th className="border p-2 w-16">Level</th>
+                <th className="border p-2 w-28">이름</th>
+                <th className="border p-2">설명</th>
+                <th className="border p-2 w-36">해당 실천</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ['1', 'No AI', '통제된 환경에서 AI 없이 수행. 학생 자신의 지식과 역량만으로 평가.', 'P1, P5, P6, P7'],
+                ['2', 'AI Planning', '브레인스토밍, 아웃라인 단계에서만 AI 허용. 최종 결과물은 독립 작성.', '-'],
+                ['3', 'AI Collaboration', 'AI 출력을 비판적으로 평가하고 수정. AI가 모르는 맥락을 식별.', 'P2, P3'],
+                ['4', 'Full AI', 'AI를 전면 활용하되, 사용 과정과 비판적 판단을 문서화.', 'P4'],
+                ['5', 'AI Exploration', 'AI와 함께 창의적으로 새로운 접근을 탐색. 혁신적 활용.', '(향후 확장)'],
+              ].map(([level, name, desc, practices], i) => (
+                <tr key={i}>
+                  <td className="border p-2 text-center font-bold">{level}</td>
+                  <td className="border p-2 font-medium">{name}</td>
+                  <td className="border p-2">{desc}</td>
+                  <td className="border p-2 text-center">{practices}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Two-Lane */}
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="text-lg font-bold mb-2">Two-Lane Approach</h3>
+          <p className="text-xs text-slate-500 mb-4">Danny Liu, University of Sydney (2023). "AI를 이기려고 점점 복잡한 과제를 설계하는 건 지는 게임이다."</p>
+          <p className="text-sm text-slate-600 mb-4">
+            평가를 두 갈래로 분리합니다. 하나는 AI 없이 역량을 검증하고, 다른 하나는 AI를 비판적으로 활용하는 능력을 평가합니다.
+            <strong> 이 수업은 두 Lane을 모두 사용합니다.</strong>
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-indigo-800 mb-2">Lane 1: 검증 (Verify)</h4>
+              <p className="text-xs text-indigo-700 mb-3">학생이 실제로 아는 것을 AI 없이 입증</p>
+              <ul className="text-xs text-indigo-600 space-y-1">
+                <li>• <strong>P1</strong> 불편함 수집 — 자기 경험만으로 작성</li>
+                <li>• <strong>P5</strong> 구술 면접 — 실시간 사고 + 후속 질문</li>
+                <li>• <strong>P6</strong> 공유 실패 루틴 — 협업과 소통</li>
+                <li>• <strong>P7</strong> 성장 성찰 — 자기 기억과 성장만이 근거</li>
+              </ul>
+            </div>
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-emerald-800 mb-2">Lane 2: 활용 (Demonstrate)</h4>
+              <p className="text-xs text-emerald-700 mb-3">AI를 비판적으로 활용하는 능력을 평가</p>
+              <ul className="text-xs text-emerald-600 space-y-1">
+                <li>• <strong>P2</strong> AI와 비교 — AI의 한계를 식별</li>
+                <li>• <strong>P3</strong> 문제 정의서 — AI 답변의 빈틈을 찾기</li>
+                <li>• <strong>P4</strong> AI 활용 일지 — 사용 과정 전체를 기록</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* 연구 결과 */}
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="text-lg font-bold mb-4">핵심 연구 결과</h3>
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h4 className="font-semibold text-sm text-amber-900 mb-1">ChatGPT는 대학 시험의 65.8%를 맞출 수 있다</h4>
+              <p className="text-xs text-amber-800">Borges et al. (2024, <em>PNAS</em>). 50개 대학 과목에서 테스트. 특히 기억-이해-적용(Bloom's 하위)에서 강하고, 분석-평가-창조(Bloom's 상위)에서 약함. → 이 수업의 과제는 <strong>Bloom&apos;s 상위 수준</strong>을 겨냥합니다.</p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-sm text-blue-900 mb-1">17개 평가 유형 중, AI에 강한 것 3가지</h4>
+              <p className="text-xs text-blue-800">Hardie et al. (2024, NCFE/Open University). 가장 AI-resistant한 평가: <strong>성찰(reflection), 관찰(observation), 청중 맞춤 과제</strong>. 일반 에세이/보고서/문제풀이는 취약. → P7 성장 성찰, P5 구술 면접이 정확히 이에 해당합니다.</p>
+            </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h4 className="font-semibold text-sm text-purple-900 mb-1">Authentic assessment만으로는 부족하다</h4>
+              <p className="text-xs text-purple-800">Kofinas et al. (2025, <em>British Journal of Educational Technology</em>). 채점자가 AI 사용 여부를 잘못 판단하는 비율이 높음(false positive + false negative). <strong>단일 전략이 아닌 다층 전략</strong>이 필요. → 이 수업은 7개 실천을 조합하여 다층 평가를 실현합니다.</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <h4 className="font-semibold text-sm text-slate-900 mb-1">AI 탐지 도구는 신뢰할 수 없다</h4>
+              <p className="text-xs text-slate-700">Gaines (2025, NPR); OpenAI 자체 AI text classifier 중단; Vanderbilt, UT Austin, Northwestern 등 사용 불권고; 비영어권 학생이 부당하게 높은 비율로 AI 사용으로 잘못 분류됨 (Watkins, 2023). → <strong>탐지가 아닌 설계로 대응</strong>하는 것이 이 수업의 접근입니다.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 우리 수업의 전략 매핑 */}
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="text-lg font-bold mb-2">우리 수업이 사용하는 AI-Resistant 전략</h3>
+          <p className="text-xs text-slate-500 mb-4">Kharbach (2026)가 정리한 8대 전략 중 이 수업이 실현하는 것들입니다.</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { num: 1, name: '구술 평가 (Oral Assessment)', status: 'active', practice: 'P5 구술면접', desc: '학생이 실시간으로 사고를 증명. AI 대필 원천 차단.' },
+              { num: 2, name: '과정 중심 평가 (Process-Based)', status: 'active', practice: 'P4 AI 활용 일지', desc: '시간에 따른 성장 추적. AI는 흔적 없이 결과만 낸다.' },
+              { num: 3, name: '개인 경험 성찰 (Personal Reflection)', status: 'active', practice: 'P7 성장 성찰문', desc: 'AI에게 없는 교실 기억과 자기 변화를 근거로 요구.' },
+              { num: 4, name: '로컬 맥락 (Local Context)', status: 'active', practice: 'P1 불편함 수집', desc: '"우리 학교 3층 화장실" 같은 것은 AI가 생성 불가.' },
+              { num: 5, name: '협업 평가 (Collaborative)', status: 'active', practice: 'P6 공유 실패 루틴', desc: '문서화된 협업 과정이 AI-resistant 핵심.' },
+              { num: 8, name: '고차 사고 (Higher-Order Thinking)', status: 'active', practice: 'P2, P3, P4', desc: 'AI 출력을 분석·비판·재구성. Bloom&apos;s 상위 수준.' },
+              { num: 6, name: '멀티모달 (Multimodal)', status: 'planned', practice: '향후', desc: '영상 설명, 사진 첨부 등 텍스트 이외 매체 확장.' },
+              { num: 7, name: '교실 내 평가 (In-Class)', status: 'partial', practice: 'P5 구술면접', desc: '통제된 환경에서의 실시간 평가.' },
+            ].map((item, i) => (
+              <div key={i} className={`border rounded-lg p-3 ${item.status === 'active' ? 'bg-emerald-50 border-emerald-200' : item.status === 'partial' ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-black">{item.num}</span>
+                  <span className="text-xs font-semibold flex-1">{item.name}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.status === 'active' ? 'bg-emerald-200 text-emerald-800' : item.status === 'partial' ? 'bg-blue-200 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
+                    {item.status === 'active' ? '적용 중' : item.status === 'partial' ? '부분 적용' : '예정'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 mb-1">{item.practice}</p>
+                <p className="text-xs text-slate-700">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 참고문헌 */}
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="text-lg font-bold mb-4">참고문헌</h3>
+          <div className="text-xs text-slate-600 space-y-2 leading-relaxed">
+            <p>Borges, B. et al. (2024). Could ChatGPT get an engineering degree? <em>PNAS</em>, 121(49), e2414955121.</p>
+            <p>Elshall, A. S., & Badir, A. (2025). The FACT assessment in environmental data science education. <em>Frontiers in Education</em>, 10, 1596462.</p>
+            <p>Gaines, L. V. (2025). Teachers are using software to see if students used AI. <em>NPR</em>.</p>
+            <p>Hardie, L. et al. (2024). Developing robust assessment in the light of Generative AI. NCFE; The Open University.</p>
+            <p>Kharbach, M. (2026). <em>AI-Resistant Assessments: A Practical Guide for Teachers</em>. CC BY-NC-SA 4.0.</p>
+            <p>Kofinas, A. K. et al. (2025). The impact of generative AI on academic integrity. <em>British Journal of Educational Technology</em>.</p>
+            <p>Liu, D. (2023). What to do about assessments if we can't out-design or outrun AI? LinkedIn.</p>
+            <p>Perkins, M., Roe, J., & Furze, L. (2024). The AI Assessment Scale revisited. arXiv:2412.09029.</p>
+            <p>Sperber, L. et al. (2025). Peer and AI Review + Reflection (PAIRR). <em>Computers and Composition</em>, 76, 102921.</p>
+            <p>Watkins, M. (2023). Beyond ineffective: How unreliable AI detection actively harms students. Substack.</p>
           </div>
         </div>
       </div>
