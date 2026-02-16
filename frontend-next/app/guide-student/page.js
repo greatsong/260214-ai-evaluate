@@ -8,6 +8,9 @@ const practices = [
     title: '불편함 수집',
     color: 'blue',
     week: '1주차',
+    aias: 'AI 사용 금지',
+    aiasColor: 'bg-red-100 text-red-700 border-red-200',
+    aiasDesc: '직접 관찰과 경험으로만 작성합니다.',
     what: '일상에서 불편한 점을 찾아서 구체적으로 기록합니다.',
     why: '좋은 프로젝트는 "진짜 문제"에서 시작합니다. 불편함을 구체적으로 관찰하는 것이 첫걸음이에요.',
     structure: '불편함 목록 → 분류 → 최종 선택 → 선택 이유',
@@ -28,6 +31,9 @@ const practices = [
     title: 'AI와 비교하기',
     color: 'emerald',
     week: '2주차',
+    aias: 'AI 적극 활용',
+    aiasColor: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    aiasDesc: 'AI를 적극적으로 사용하되, 내 발견과 비교하세요.',
     what: 'AI에게 같은 질문을 하고, 내가 찾은 것과 AI가 찾은 것을 비교합니다.',
     why: 'AI가 잘하는 것과 못하는 것을 구별하는 능력을 기릅니다. "나만 아는 것"이 핵심이에요.',
     structure: '나만 찾은 것 → AI와 비교 분석 → 최종 선택 + 이유',
@@ -47,6 +53,9 @@ const practices = [
     title: '문제 정의서',
     color: 'purple',
     week: '3-4주차',
+    aias: 'AI 참고 후 비판',
+    aiasColor: 'bg-blue-100 text-blue-700 border-blue-200',
+    aiasDesc: 'AI 답변을 참고하되, 빠진 맥락을 찾아 비판하세요.',
     what: '7개 항목으로 문제를 체계적으로 정의합니다. AI를 활용하되, 비판적으로 분석합니다.',
     why: '"풀 수 있는 문제는 측정할 수 있는 문제"입니다. 모호한 불만을 구체적 문제로 바꾸는 훈련이에요.',
     structure: '① 문제 정의 → ② 구체성 → ③ 대상 → ④ 긴급성 → ⑤ AI 활용 → ⑥ AI 비판 → ⑦ 결정 이유',
@@ -67,6 +76,9 @@ const practices = [
     title: 'AI 활용 일지',
     color: 'amber',
     week: '5-8주차 (상시)',
+    aias: 'AI 전면 사용 + 기록',
+    aiasColor: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    aiasDesc: 'AI를 자유롭게 사용하되, 모든 과정을 기록하세요.',
     what: '프로젝트 진행 중 AI를 사용할 때마다 5가지 항목을 기록합니다.',
     why: '가장 중요한 평가 자료입니다. AI를 "받아 쓰는" 것이 아니라 "검토하고 판단하는" 과정을 보여주세요.',
     structure: 'AI에게 뭘 물었나 → AI가 뭘 줬나 → 내가 뭘 바꿨나 → AI의 문제점 → 내 결정',
@@ -87,6 +99,9 @@ const practices = [
     title: '성장 성찰문',
     color: 'teal',
     week: '학기말',
+    aias: 'AI 사용 금지',
+    aiasColor: 'bg-red-100 text-red-700 border-red-200',
+    aiasDesc: '자기 경험과 성장을 직접 돌아보며 작성합니다.',
     what: '한 학기를 돌아보며 4가지 영역에서 자신의 변화를 분석합니다.',
     why: '"많이 배웠습니다"는 성찰이 아닙니다. 구체적 근거(날짜, 원문)를 인용하며 변화를 보여주세요.',
     structure: '① 문제 발견 능력 변화 → ② AI 협업 방식 변화 → ③ 가장 중요한 결정 → ④ 나는 어떤 사람인가',
@@ -150,6 +165,74 @@ export default function StudentGuidePage() {
           </div>
         </div>
 
+        {/* 왜 이런 과제인지 FAQ */}
+        <div className="bg-white rounded-2xl border p-6 mb-8">
+          <h2 className="text-base font-bold text-slate-800 mb-4">자주 묻는 질문</h2>
+          <div className="space-y-4">
+            <details className="group">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 flex items-center gap-2">
+                <span className="text-blue-500 group-open:rotate-90 transition-transform">&#9654;</span>
+                AI한테 시키면 되는데, 왜 직접 써야 하나요?
+              </summary>
+              <div className="mt-2 ml-5 text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4">
+                <p className="mb-2">
+                  실제 연구 결과, AI(ChatGPT)는 대학 시험 문제의 <strong>65.8%</strong>를 풀 수 있습니다
+                  <span className="text-xs text-slate-400"> (Borges 외, 2024, PNAS)</span>.
+                  하지만 AI가 풀 수 있는 문제는 <strong>단순 지식 확인</strong> 문제가 대부분이에요.
+                </p>
+                <p className="mb-2">
+                  이 수업의 과제는 AI가 대신할 수 <strong>없는</strong> 것들로 구성되어 있어요:
+                  여러분의 <strong>직접 경험</strong>, <strong>현장 관찰</strong>, <strong>판단 과정</strong>, 그리고 <strong>성장 변화</strong>.
+                  AI는 여러분의 학교 화장실이 몇 층에서 고장 났는지 모릅니다.
+                </p>
+                <p className="text-xs text-slate-500">
+                  즉, AI를 &quot;못 쓰게&quot; 하는 것이 아니라, AI가 &quot;할 수 없는 것&quot;을 여러분이 하는 거예요.
+                </p>
+              </div>
+            </details>
+
+            <details className="group">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 flex items-center gap-2">
+                <span className="text-blue-500 group-open:rotate-90 transition-transform">&#9654;</span>
+                각 실천에서 AI를 어디까지 써도 되나요?
+              </summary>
+              <div className="mt-2 ml-5 text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4">
+                <p className="mb-3">실천마다 AI 사용 범위가 다릅니다. 각 탭의 뱃지를 확인하세요:</p>
+                <div className="space-y-2">
+                  {practices.map(p => (
+                    <div key={p.id} className="flex items-center gap-2">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded border ${p.aiasColor}`}>{p.aias}</span>
+                      <span className="text-xs text-slate-500">{p.code}: {p.title} — {p.aiasDesc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </details>
+
+            <details className="group">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 flex items-center gap-2">
+                <span className="text-blue-500 group-open:rotate-90 transition-transform">&#9654;</span>
+                AI가 대신 써주면 왜 점수가 낮아지나요?
+              </summary>
+              <div className="mt-2 ml-5 text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4">
+                <p className="mb-2">
+                  이 수업의 루브릭(채점 기준)은 <strong>결과물의 완성도</strong>가 아니라
+                  <strong> 사고의 과정</strong>을 평가합니다.
+                </p>
+                <p className="mb-2">
+                  예를 들어, P3 문제 정의서에서 &quot;비판적 사고&quot; 항목은
+                  <strong> &quot;AI가 모르는 구체적 맥락을 지적하고, 왜 AI가 이걸 모르는지 설명&quot;</strong>해야 높은 점수를 받아요.
+                  AI가 대신 쓰면 이 항목에서 점수를 받을 수 없습니다.
+                </p>
+                <p className="text-xs text-slate-500">
+                  AI가 아무리 잘 써도 &quot;나만 아는 것&quot;, &quot;내가 판단한 이유&quot;, &quot;내가 바꾼 근거&quot;는 AI가 만들어낼 수 없어요.
+                  바로 그것이 평가의 핵심입니다.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+
         {/* 실천 활동 탭 */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {practices.map(p => (
@@ -172,6 +255,7 @@ export default function StudentGuidePage() {
               <span className={`${c.badge} text-white text-xs font-black px-3 py-1 rounded-full`}>{current.code}</span>
               <h2 className={`text-xl font-bold ${c.text}`}>{current.title}</h2>
               <span className="text-xs text-slate-500 bg-white rounded-full px-3 py-1">{current.week}</span>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${current.aiasColor}`}>{current.aias}</span>
             </div>
             <p className={`text-sm ${c.text} mb-4`}>{current.what}</p>
             <div className="bg-white bg-opacity-60 rounded-xl p-4">
