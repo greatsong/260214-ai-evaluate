@@ -10,6 +10,18 @@ const api = axios.create({
   timeout: 120000,
 });
 
+// 백엔드 구조화된 응답({ success, data })에서 data 추출
+function unwrap(response) {
+  const body = response.data;
+  if (body && typeof body === 'object' && 'success' in body) {
+    if (!body.success) {
+      throw new Error(body.error?.message || '서버 오류가 발생했습니다.');
+    }
+    return body.data;
+  }
+  return body;
+}
+
 // ============================================================
 // 데모 모드 상태
 // ============================================================
@@ -106,7 +118,7 @@ const demoRubrics = {
 
 export async function getStudents() {
   if (_demoMode) return [...demoStudents];
-  return api.get('/students').then(r => r.data);
+  return api.get('/students').then(unwrap);
 }
 
 export async function addStudent(data) {
@@ -116,7 +128,7 @@ export async function addStudent(data) {
     demoStudents.push(s);
     return s;
   }
-  return api.post('/students', data).then(r => r.data);
+  return api.post('/students', data).then(unwrap);
 }
 
 export async function deleteStudent(id) {
@@ -125,12 +137,12 @@ export async function deleteStudent(id) {
     if (idx !== -1) demoStudents.splice(idx, 1);
     return { success: true };
   }
-  return api.delete(`/students/${id}`).then(r => r.data);
+  return api.delete(`/students/${id}`).then(unwrap);
 }
 
 export async function importStudentsExcel(fileData, fileName) {
   if (_demoMode) return { total: 0, successCount: 0, failureCount: 0, results: { success: [], failed: [] } };
-  return api.post('/students/import/excel', { fileData, fileName }).then(r => r.data);
+  return api.post('/students/import/excel', { fileData, fileName }).then(unwrap);
 }
 
 // ============================================================
@@ -144,7 +156,7 @@ export async function getArtifacts(params = {}) {
     if (params.practice_type) result = result.filter(a => a.practice_type === params.practice_type);
     return result;
   }
-  return api.get('/artifacts', { params }).then(r => r.data);
+  return api.get('/artifacts', { params }).then(unwrap);
 }
 
 export async function addArtifact(data) {
@@ -154,7 +166,7 @@ export async function addArtifact(data) {
     demoArtifacts.push(a);
     return a;
   }
-  return api.post('/artifacts', data).then(r => r.data);
+  return api.post('/artifacts', data).then(unwrap);
 }
 
 export async function deleteArtifact(id) {
@@ -163,7 +175,7 @@ export async function deleteArtifact(id) {
     if (idx !== -1) demoArtifacts.splice(idx, 1);
     return { success: true };
   }
-  return api.delete(`/artifacts/${id}`).then(r => r.data);
+  return api.delete(`/artifacts/${id}`).then(unwrap);
 }
 
 // ============================================================
@@ -179,7 +191,7 @@ export async function getEvaluations(params = {}) {
     if (params.artifact_id) result = result.filter(e => e.artifact_id === Number(params.artifact_id));
     return result;
   }
-  return api.get('/evaluations', { params }).then(r => r.data);
+  return api.get('/evaluations', { params }).then(unwrap);
 }
 
 export async function evaluateArtifact(data) {
@@ -200,7 +212,7 @@ export async function evaluateArtifact(data) {
       praise: "데모 모드", improvement: "백엔드 연결 후 사용", action_guide: "데모 OFF 후 사용"
     };
   }
-  return api.post('/evaluate', data).then(r => r.data);
+  return api.post('/evaluate', data).then(unwrap);
 }
 
 // ============================================================
@@ -212,7 +224,7 @@ export async function requestGrowthAnalysis(data) {
     await new Promise(r => setTimeout(r, 800));
     return { analysis: demoGrowthAnalysis };
   }
-  return api.post('/growth-analysis', data).then(r => r.data);
+  return api.post('/growth-analysis', data).then(unwrap);
 }
 
 // ============================================================
@@ -224,7 +236,7 @@ export async function requestPortfolioFeedback(data) {
     await new Promise(r => setTimeout(r, 800));
     return demoPortfolio;
   }
-  return api.post('/portfolio-feedback', data).then(r => r.data);
+  return api.post('/portfolio-feedback', data).then(unwrap);
 }
 
 // ============================================================
@@ -236,7 +248,7 @@ export async function requestSchoolRecord(data) {
     await new Promise(r => setTimeout(r, 800));
     return demoSchoolRecord;
   }
-  return api.post('/school-record', data).then(r => r.data);
+  return api.post('/school-record', data).then(unwrap);
 }
 
 // ============================================================
@@ -265,7 +277,7 @@ export async function saveReflection(data) {
     else demoReflections.push(reflection);
     return reflection;
   }
-  return api.post('/reflection', data).then(r => r.data);
+  return api.post('/reflection', data).then(unwrap);
 }
 
 // ============================================================
@@ -274,7 +286,7 @@ export async function saveReflection(data) {
 
 export async function getRubrics() {
   if (_demoMode) return demoRubrics;
-  return api.get('/rubrics').then(r => r.data);
+  return api.get('/rubrics').then(unwrap);
 }
 
 export default api;

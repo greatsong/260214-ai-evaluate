@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { ensureDB } from '@/lib/dbInit';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -9,14 +10,25 @@ export async function GET(request) {
     return NextResponse.json({ error: '학번(number)이 필요합니다.' }, { status: 400 });
   }
 
-  const { demoStudents } = await import('@/lib/demoData');
-  const student = demoStudents.find(s => s.student_number === studentNumber);
+  const db = await ensureDB();
+  let student;
+
+  if (!db) {
+    const { demoStudents } = await import('@/lib/demoData');
+    student = demoStudents.find(s => s.student_number === studentNumber);
+  } else {
+    const result = await db.execute({
+      sql: 'SELECT * FROM students WHERE student_number = ?',
+      args: [studentNumber],
+    });
+    student = result.rows[0] || null;
+  }
 
   if (!student) {
     return NextResponse.json({ error: '해당 학번의 학생을 찾을 수 없습니다.' }, { status: 404 });
   }
 
-  // pin 파라미터가 없으면: 학생 기본 정보 + 비밀번호 설정 여부만 반환
+  // pin 파라미터가 없으면: 기본 정보 + 비밀번호 설정 여부만
   if (!pin) {
     return NextResponse.json({
       id: student.id,

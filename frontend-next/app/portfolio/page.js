@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { getStudents, getArtifacts, requestPortfolioFeedback, requestSchoolRecord } from '@/lib/api';
 import { FACTRadarChart } from '@/components/Charts';
 import LevelBadge from '@/components/LevelBadge';
+import { useToast } from '@/components/Toast';
+import { StudentSelector } from '@/components/StudentSelector';
 
 export default function PortfolioPage() {
   const [students, setStudents] = useState([]);
@@ -11,8 +13,9 @@ export default function PortfolioPage() {
   const [schoolRecord, setSchoolRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [recordLoading, setRecordLoading] = useState(false);
+  const { showSuccess, showError } = useToast();
 
-  useEffect(() => { getStudents().then(setStudents).catch(console.error); }, []);
+  useEffect(() => { getStudents().then(setStudents).catch(() => showError('학생 목록 로드 실패')); }, []);
 
   const studentObj = students.find(s => s.id === parseInt(selectedStudent));
 
@@ -24,7 +27,7 @@ export default function PortfolioPage() {
       setSchoolRecord(null);
       const studentArtifacts = await getArtifacts({ student_id: studentObj.id });
       if (studentArtifacts.length === 0) {
-        alert('해당 학생의 산출물이 없습니다. 먼저 산출물을 입력하세요.');
+        showError('해당 학생의 산출물이 없습니다. 먼저 산출물을 입력하세요.');
         setLoading(false);
         return;
       }
@@ -35,7 +38,7 @@ export default function PortfolioPage() {
       });
       setPortfolio(result);
     } catch (e) {
-      alert('오류: ' + (e.response?.data?.error || e.message));
+      showError('포트폴리오 분석 오류: ' + (e.response?.data?.error?.message || e.response?.data?.error || e.message));
     } finally { setLoading(false); }
   };
 
@@ -52,12 +55,12 @@ export default function PortfolioPage() {
       });
       setSchoolRecord(result);
     } catch (e) {
-      alert('오류: ' + (e.response?.data?.error || e.message));
+      showError('생기부 생성 오류: ' + (e.response?.data?.error?.message || e.response?.data?.error || e.message));
     } finally { setRecordLoading(false); }
   };
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => alert('클립보드에 복사되었습니다.'));
+    navigator.clipboard.writeText(text).then(() => showSuccess('클립보드에 복사되었습니다.'));
   };
 
   const factLabels = { F: '실현력', A: 'AI 리터러시', C: '비판적 사고', T: '협업·소통' };
@@ -68,14 +71,8 @@ export default function PortfolioPage() {
 
       <div className="bg-white rounded-lg shadow-sm p-5 mb-6">
         <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="text-xs text-slate-500 block mb-1">학생</label>
-            <select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)}
-              className="w-full border rounded px-3 py-2 text-sm">
-              <option value="">선택하세요</option>
-              {students.map(s => <option key={s.id} value={s.id}>{s.name} ({s.class_name})</option>)}
-            </select>
-          </div>
+          <StudentSelector students={students} value={selectedStudent}
+            onChange={setSelectedStudent} label="학생" />
           <div className="flex items-end">
             <button onClick={handlePortfolio} disabled={loading || !selectedStudent}
               className="w-full bg-purple-600 text-white rounded px-4 py-2 text-sm hover:bg-purple-700 disabled:bg-slate-300">

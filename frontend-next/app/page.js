@@ -2,14 +2,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getStudents, getArtifacts, getEvaluations } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ students: 0, artifacts: 0, evaluations: 0 });
+  const { showError } = useToast();
 
   useEffect(() => {
     Promise.all([getStudents(), getArtifacts({}), getEvaluations({})])
       .then(([s, a, e]) => setStats({ students: s.length, artifacts: a.length, evaluations: e.length }))
-      .catch(() => {});
+      .catch(() => showError('대시보드 데이터 로드 실패'));
   }, []);
 
   const cards = [

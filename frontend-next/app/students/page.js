@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { getStudents, addStudent, deleteStudent, importStudentsExcel } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -8,24 +9,25 @@ export default function StudentsPage() {
   const [tab, setTab] = useState('list');
   const [importResult, setImportResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   const fetchStudents = useCallback(async () => {
     try {
       const data = await getStudents();
       setStudents(data);
-    } catch (e) { console.error(e); }
+    } catch (e) { showError('학생 목록 로드 실패'); }
   }, []);
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!form.student_number || !form.name) return alert('학번과 이름은 필수입니다.');
+    if (!form.student_number || !form.name) { showError('학번과 이름은 필수입니다.'); return; }
     try {
       await addStudent({ ...form, number: parseInt(form.number) || 0 });
       setForm({ student_number: '', name: '', class_name: '', number: '' });
       fetchStudents();
-    } catch (err) { alert('등록 오류: ' + err.message); }
+    } catch (err) { showError('등록 오류: ' + err.message); }
   };
 
   const handleResetPin = async (id, name) => {
@@ -36,13 +38,13 @@ export default function StudentsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: id }),
       });
-      alert(`${name} 학생의 비밀번호가 초기화되었습니다.`);
-    } catch (e) { alert('초기화 실패: ' + e.message); }
+      showSuccess(`${name} 학생의 비밀번호가 초기화되었습니다.`);
+    } catch (e) { showError('초기화 실패: ' + e.message); }
   };
 
   const handleDelete = async (id, name) => {
     if (!confirm(`${name} 학생을 삭제하시겠습니까?`)) return;
-    try { await deleteStudent(id); fetchStudents(); } catch (e) { alert(e.message); }
+    try { await deleteStudent(id); fetchStudents(); } catch (e) { showError(e.message); }
   };
 
   const handleFileUpload = async (e) => {
@@ -59,7 +61,7 @@ export default function StudentsPage() {
         setLoading(false);
       };
       reader.readAsDataURL(file);
-    } catch (e) { alert(e.message); setLoading(false); }
+    } catch (e) { showError(e.message); setLoading(false); }
   };
 
   return (
@@ -70,16 +72,16 @@ export default function StudentsPage() {
       <div className="bg-white rounded-lg shadow-sm p-5 mb-6">
         <h2 className="font-semibold mb-4">학생 등록</h2>
         <form onSubmit={handleAdd} className="grid grid-cols-5 gap-3">
-          <input placeholder="학번 *" value={form.student_number}
+          <input placeholder="학번 *" value={form.student_number} aria-label="학번"
             onChange={e => setForm({...form, student_number: e.target.value})}
             className="border rounded px-3 py-2 text-sm" />
-          <input placeholder="이름 *" value={form.name}
+          <input placeholder="이름 *" value={form.name} aria-label="이름"
             onChange={e => setForm({...form, name: e.target.value})}
             className="border rounded px-3 py-2 text-sm" />
-          <input placeholder="반" value={form.class_name}
+          <input placeholder="반" value={form.class_name} aria-label="반"
             onChange={e => setForm({...form, class_name: e.target.value})}
             className="border rounded px-3 py-2 text-sm" />
-          <input placeholder="번호" type="number" value={form.number}
+          <input placeholder="번호" type="number" value={form.number} aria-label="번호"
             onChange={e => setForm({...form, number: e.target.value})}
             className="border rounded px-3 py-2 text-sm" />
           <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700">
@@ -122,11 +124,11 @@ export default function StudentsPage() {
                   <td className="p-3">{s.number}</td>
                   <td className="p-3 text-center">
                     <button onClick={() => handleResetPin(s.id, s.name)}
-                      className="text-amber-600 hover:text-amber-800 text-xs">초기화</button>
+                      className="text-amber-600 hover:text-amber-800 text-xs" aria-label="비밀번호 초기화">초기화</button>
                   </td>
                   <td className="p-3 text-center">
                     <button onClick={() => handleDelete(s.id, s.name)}
-                      className="text-red-500 hover:text-red-700 text-xs">삭제</button>
+                      className="text-red-500 hover:text-red-700 text-xs" aria-label="학생 삭제">삭제</button>
                   </td>
                 </tr>
               ))}

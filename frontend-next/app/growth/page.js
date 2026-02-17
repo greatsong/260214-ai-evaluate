@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { getStudents, getArtifacts, requestGrowthAnalysis, getRubrics } from '@/lib/api';
-import { PRACTICE_TYPES } from '@/lib/constants';
 import { GrowthLineChart } from '@/components/Charts';
+import { useToast } from '@/components/Toast';
+import { StudentSelector, PracticeTypeSelector } from '@/components/StudentSelector';
 
 export default function GrowthPage() {
   const [students, setStudents] = useState([]);
@@ -12,11 +13,12 @@ export default function GrowthPage() {
   const [artifacts, setArtifacts] = useState([]);
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { showError } = useToast();
 
   useEffect(() => {
     Promise.all([getStudents(), getRubrics()])
       .then(([s, r]) => { setStudents(s); setRubrics(r); })
-      .catch(console.error);
+      .catch(() => showError('데이터 로드 실패'));
   }, []);
 
   const fetchArtifacts = useCallback(async () => {
@@ -24,13 +26,13 @@ export default function GrowthPage() {
     try {
       const data = await getArtifacts({ student_id: selectedStudent, practice_type: selectedPractice });
       setArtifacts(data);
-    } catch (e) { console.error(e); }
+    } catch (e) { showError('산출물 조회 실패'); }
   }, [selectedStudent, selectedPractice]);
 
   useEffect(() => { fetchArtifacts(); setAnalysis(null); }, [fetchArtifacts]);
 
   const handleAnalyze = async () => {
-    if (artifacts.length < 2) return alert('성장 분석을 위해 최소 2개 산출물이 필요합니다.');
+    if (artifacts.length < 2) { showError('성장 분석을 위해 최소 2개 산출물이 필요합니다.'); return; }
     try {
       setLoading(true);
       const result = await requestGrowthAnalysis({
@@ -40,7 +42,7 @@ export default function GrowthPage() {
       });
       setAnalysis(result.analysis);
     } catch (e) {
-      alert('분석 오류: ' + (e.response?.data?.error || e.message));
+      showError('분석 오류: ' + (e.response?.data?.error?.message || e.response?.data?.error || e.message));
     } finally { setLoading(false); }
   };
 
@@ -53,21 +55,10 @@ export default function GrowthPage() {
 
       <div className="bg-white rounded-lg shadow-sm p-5 mb-6">
         <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="text-xs text-slate-500 block mb-1">학생</label>
-            <select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)}
-              className="w-full border rounded px-3 py-2 text-sm">
-              <option value="">선택하세요</option>
-              {students.map(s => <option key={s.id} value={s.id}>{s.name} ({s.class_name})</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-slate-500 block mb-1">실천 활동</label>
-            <select value={selectedPractice} onChange={e => setSelectedPractice(e.target.value)}
-              className="w-full border rounded px-3 py-2 text-sm">
-              {Object.entries(PRACTICE_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </div>
+          <StudentSelector students={students} value={selectedStudent}
+            onChange={setSelectedStudent} label="학생" />
+          <PracticeTypeSelector value={selectedPractice}
+            onChange={setSelectedPractice} label="실천 활동" />
           <div className="flex items-end">
             <button onClick={handleAnalyze} disabled={loading || artifacts.length < 2}
               className="w-full bg-emerald-600 text-white rounded px-4 py-2 text-sm hover:bg-emerald-700 disabled:bg-slate-300">

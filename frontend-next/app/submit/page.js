@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { addArtifact } from '@/lib/api';
 import { PRACTICE_TYPES } from '@/lib/constants';
+import { useToast } from '@/components/Toast';
 
 function SubmitForm() {
   const searchParams = useSearchParams();
@@ -34,6 +35,7 @@ function SubmitForm() {
   const [submitted, setSubmitted] = useState(false);
 
   const hasPreset = !!searchParams.get('type');
+  const { showError } = useToast();
 
   // Step 1: 학번으로 학생 조회
   const lookupStudent = async () => {
@@ -120,7 +122,7 @@ function SubmitForm() {
       });
       setSubmitted(true);
     } catch (err) {
-      alert('제출 오류: ' + (err.response?.data?.error || err.message));
+      showError('제출 오류: ' + (err.response?.data?.error?.message || err.response?.data?.error || err.message));
     } finally {
       setSubmitting(false);
     }

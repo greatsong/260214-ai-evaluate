@@ -6,6 +6,9 @@ import { ScoreRadarChart } from '@/components/Charts';
 import ScoreTable from '@/components/ScoreTable';
 import FeedbackCard from '@/components/FeedbackCard';
 import LevelBadge from '@/components/LevelBadge';
+import { useToast } from '@/components/Toast';
+import { StudentSelector, PracticeTypeSelector } from '@/components/StudentSelector';
+import EmptyState from '@/components/EmptyState';
 
 export default function EvaluatePage() {
   const [students, setStudents] = useState([]);
@@ -15,6 +18,7 @@ export default function EvaluatePage() {
   const [selected, setSelected] = useState(null);
   const [evaluation, setEvaluation] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
+  const { showError } = useToast();
 
   const fetchData = useCallback(async () => {
     try {
@@ -22,7 +26,7 @@ export default function EvaluatePage() {
       setStudents(s);
       setArtifacts(a.reverse());
       setRubrics(r);
-    } catch (e) { console.error(e); }
+    } catch (e) { showError('데이터 로드 실패'); }
   }, [filter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -41,7 +45,7 @@ export default function EvaluatePage() {
         }
         setEvaluation(ev);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { showError('평가 조회 실패'); }
   };
 
   const handleEvaluate = async () => {
@@ -57,7 +61,7 @@ export default function EvaluatePage() {
       });
       setEvaluation(result);
     } catch (e) {
-      alert('평가 오류: ' + (e.response?.data?.error || e.message));
+      showError('평가 오류: ' + (e.response?.data?.error?.message || e.response?.data?.error || e.message));
     } finally {
       setEvaluating(false);
     }
@@ -74,16 +78,12 @@ export default function EvaluatePage() {
         {/* 좌측: 산출물 목록 */}
         <div>
           <div className="flex gap-2 mb-3">
-            <select value={filter.student_id} onChange={e => setFilter({...filter, student_id: e.target.value})}
-              className="border rounded px-2 py-1.5 text-xs bg-white flex-1">
-              <option value="">전체 학생</option>
-              {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            <select value={filter.practice_type} onChange={e => setFilter({...filter, practice_type: e.target.value})}
-              className="border rounded px-2 py-1.5 text-xs bg-white flex-1">
-              <option value="">전체</option>
-              {Object.entries(PRACTICE_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
+            <StudentSelector students={students} value={filter.student_id}
+              onChange={v => setFilter({...filter, student_id: v})}
+              label="" placeholder="전체 학생" showClass={false} size="sm" className="flex-1" />
+            <PracticeTypeSelector value={filter.practice_type}
+              onChange={v => setFilter({...filter, practice_type: v})}
+              label="" includeAll size="sm" className="flex-1" />
           </div>
 
           <div className="space-y-2 max-h-[70vh] overflow-y-auto">
@@ -98,7 +98,7 @@ export default function EvaluatePage() {
                 </div>
               </div>
             ))}
-            {artifacts.length === 0 && <p className="text-sm text-slate-400 text-center py-4">산출물 없음</p>}
+            {artifacts.length === 0 && <EmptyState message="산출물 없음" />}
           </div>
         </div>
 

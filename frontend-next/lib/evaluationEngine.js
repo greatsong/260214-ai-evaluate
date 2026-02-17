@@ -9,7 +9,10 @@ import rubrics from './rubrics';
 class EvaluationEngine {
   constructor(apiKey) {
     this.client = new Anthropic({ apiKey });
-    this.model = 'claude-sonnet-4-20250514';
+    this.model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514';
+    this.defaultTemperature = parseFloat(process.env.CLAUDE_TEMPERATURE || '0.3');
+    this.retryTemperature = parseFloat(process.env.CLAUDE_RETRY_TEMPERATURE || '0.2');
+    this.maxRetries = parseInt(process.env.CLAUDE_RETRY_COUNT || '3');
   }
 
   deidentify(text, studentName) {

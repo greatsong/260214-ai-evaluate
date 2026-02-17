@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { NAV_ITEMS } from '@/lib/constants';
 import { setDemoMode } from '@/lib/api';
+import { ToastProvider } from '@/components/Toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const DemoContext = createContext({ demo: true, toggle: () => {} });
 export function useDemoContext() { return useContext(DemoContext); }
@@ -89,25 +91,29 @@ export default function RootLayout({ children }) {
         <title>{isStudentPage ? 'AI 실천 평가 - 학생' : 'AI 실천 평가 시스템'}</title>
       </head>
       <body className="bg-slate-50">
-        <DemoContext.Provider value={{ demo, toggle }}>
-          {isStudentPage ? (
-            <main className="min-h-screen">
-              {children}
-            </main>
-          ) : (
-            <>
-              <Sidebar demo={demo} onToggle={toggle} />
-              <main className="ml-56 min-h-screen p-6">
-                {demo && (
-                  <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
-                    데모 모드 — 샘플 데이터로 전체 기능을 미리 체험할 수 있습니다. 실제 사용 시 사이드바에서 데모 OFF로 전환하세요.
-                  </div>
-                )}
-                {children}
-              </main>
-            </>
-          )}
-        </DemoContext.Provider>
+        <ToastProvider>
+          <ErrorBoundary>
+            <DemoContext.Provider value={{ demo, toggle }}>
+              {isStudentPage ? (
+                <main className="min-h-screen">
+                  {children}
+                </main>
+              ) : (
+                <>
+                  <Sidebar demo={demo} onToggle={toggle} />
+                  <main className="ml-56 min-h-screen p-6">
+                    {demo && (
+                      <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
+                        데모 모드 — 샘플 데이터로 전체 기능을 미리 체험할 수 있습니다. 실제 사용 시 사이드바에서 데모 OFF로 전환하세요.
+                      </div>
+                    )}
+                    {children}
+                  </main>
+                </>
+              )}
+            </DemoContext.Provider>
+          </ErrorBoundary>
+        </ToastProvider>
       </body>
     </html>
   );

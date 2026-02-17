@@ -13,7 +13,10 @@ const rubrics = require('../data/rubrics');
 class EvaluationEngine {
   constructor(apiKey) {
     this.client = new Anthropic({ apiKey });
-    this.model = 'claude-sonnet-4-20250514';
+    this.model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514';
+    this.defaultTemperature = parseFloat(process.env.CLAUDE_TEMPERATURE || '0.3');
+    this.retryTemperature = parseFloat(process.env.CLAUDE_RETRY_TEMPERATURE || '0.2');
+    this.maxRetries = parseInt(process.env.CLAUDE_RETRY_COUNT || '3');
   }
 
   // ============================================================
@@ -180,16 +183,22 @@ ${itemKeys.map(k => `    "${k}": { "score": 점수, "evidence": "산출물에서
   // API 호출 (재시도 포함)
   // ============================================================
 
-  async callAPI(systemPrompt, userPrompt, maxTokens = 2000, retries = 3) {
+  async callAPI(systemPrompt, userPrompt, maxTokens = 2000) {
+    const retries = this.maxRetries;
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const response = await this.client.messages.create({
           model: this.model,
           max_tokens: maxTokens,
-          temperature: 0.3,
+          temperature: this.defaultTemperature,
           system: systemPrompt,
           messages: [{ role: 'user', content: userPrompt }]
         });
+
+        // 토큰 사용량 로깅
+        if (response.usage) {
+          console.log(`[평가엔진] 토큰: input=${response.usage.input_tokens}, output=${response.usage.output_tokens}`);
+        }
 
         const responseText = response.content[0].text;
         const parsed = this.parseJSON(responseText);
@@ -202,7 +211,7 @@ ${itemKeys.map(k => `    "${k}": { "score": 점수, "evidence": "산출물에서
           const retryResponse = await this.client.messages.create({
             model: this.model,
             max_tokens: maxTokens,
-            temperature: 0.2,
+            temperature: this.retryTemperature,
             system: systemPrompt,
             messages: [
               { role: 'user', content: userPrompt },

@@ -24,82 +24,87 @@ class Database {
   }
   
   initDB() {
-    // 학생 테이블
-    this.db.run(`
-      CREATE TABLE IF NOT EXISTS students (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_number TEXT,
-        name TEXT NOT NULL,
-        class_name TEXT,
-        number INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // 산출물 테이블
-    this.db.run(`
-      CREATE TABLE IF NOT EXISTS artifacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER NOT NULL,
-        practice_type TEXT NOT NULL,
-        raw_text TEXT NOT NULL,
-        structured_data TEXT,
-        date TEXT,
-        session TEXT,
-        sequence INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (student_id) REFERENCES students(id)
-      )
-    `);
-    
-    // 평가 결과 테이블
-    this.db.run(`
-      CREATE TABLE IF NOT EXISTS evaluations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        artifact_id INTEGER NOT NULL,
-        eval_type TEXT NOT NULL,
-        scores TEXT,
-        total_score REAL,
-        feedback TEXT,
-        raw_api_response TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (artifact_id) REFERENCES artifacts(id)
-      )
-    `);
-    
-    // 성장 분석 테이블
-    this.db.run(`
-      CREATE TABLE IF NOT EXISTS growth_analyses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER NOT NULL,
-        practice_type TEXT NOT NULL,
-        artifact_ids TEXT,
-        analysis TEXT,
-        trajectory TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (student_id) REFERENCES students(id)
-      )
-    `);
-    
-    // 학번 필드가 없으면 추가 (마이그레이션)
-    this.db.run(`
-      PRAGMA table_info(students)
-    `, (err, rows) => {
-      if (!err && rows) {
-        const hasStudentNumber = rows.some(col => col.name === 'student_number');
-        if (!hasStudentNumber) {
-          console.log('⚠️  학번 필드 추가 중...');
-          this.db.run(`ALTER TABLE students ADD COLUMN student_number TEXT`, (err) => {
-            if (err && err.message.includes('duplicate column')) {
-              console.log('✅ 학번 필드 이미 존재');
-            } else if (err) {
-              console.log('⚠️  학번 필드 추가 오류:', err.message);
-            } else {
-              console.log('✅ 학번 필드 추가 완료');
-            }
-          });
+    // 외래키 제약 활성화
+    this.db.run(`PRAGMA foreign_keys = ON`);
+
+    this.db.serialize(() => {
+      // 학생 테이블
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS students (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_number TEXT,
+          name TEXT NOT NULL,
+          class_name TEXT,
+          number INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // 산출물 테이블
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS artifacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id INTEGER NOT NULL,
+          practice_type TEXT NOT NULL,
+          raw_text TEXT NOT NULL,
+          structured_data TEXT,
+          date TEXT,
+          session TEXT,
+          sequence INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+        )
+      `);
+
+      // 평가 결과 테이블
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS evaluations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          artifact_id INTEGER NOT NULL,
+          eval_type TEXT NOT NULL,
+          scores TEXT,
+          total_score REAL,
+          feedback TEXT,
+          raw_api_response TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (artifact_id) REFERENCES artifacts(id) ON DELETE CASCADE
+        )
+      `);
+
+      // 성장 분석 테이블
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS growth_analyses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id INTEGER NOT NULL,
+          practice_type TEXT NOT NULL,
+          artifact_ids TEXT,
+          analysis TEXT,
+          trajectory TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+        )
+      `);
+
+      // 인덱스
+      this.db.run(`CREATE INDEX IF NOT EXISTS idx_artifacts_student_id ON artifacts(student_id)`);
+      this.db.run(`CREATE INDEX IF NOT EXISTS idx_artifacts_practice_type ON artifacts(practice_type)`);
+      this.db.run(`CREATE INDEX IF NOT EXISTS idx_evaluations_artifact_id ON evaluations(artifact_id)`);
+      this.db.run(`CREATE INDEX IF NOT EXISTS idx_students_student_number ON students(student_number)`);
+
+      // 마이그레이션: 학번 필드
+      this.db.all(`PRAGMA table_info(students)`, (err, rows) => {
+        if (!err && rows) {
+          const hasStudentNumber = rows.some(col => col.name === 'student_number');
+          if (!hasStudentNumber) {
+            console.log('학번 필드 추가 중...');
+            this.db.run(`ALTER TABLE students ADD COLUMN student_number TEXT`, (err) => {
+              if (err && !err.message.includes('duplicate column')) {
+                console.error('학번 필드 추가 오류:', err.message);
+              }
+            });
+          }
         }
-      }
+      });
     });
   }
   
