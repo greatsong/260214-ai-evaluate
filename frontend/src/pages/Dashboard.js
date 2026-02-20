@@ -51,7 +51,7 @@ export default function Dashboard({ students, demoMode }) {
 
   return (
     <div className="container">
-      <h1>🎓 AI 교실 실천 평가 시스템</h1>
+      <h1>🎓 AI 기반 프로젝트 평가 시스템</h1>
       
       <div className="grid grid-3">
         <div className="metric">

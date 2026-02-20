@@ -66,7 +66,7 @@ function App() {
         <nav className="navbar">
           <div className="navbar-container">
             <Link to="/" className="navbar-brand">
-              🎓 AI 교실 실천 평가 시스템
+              🎓 AI 기반 프로젝트 평가 시스템
             </Link>
             <ul className="navbar-menu">
               <li><Link to="/">홈</Link></li>

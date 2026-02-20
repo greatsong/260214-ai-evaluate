@@ -165,7 +165,7 @@ function SubmitForm() {
       <header className="bg-white border-b px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-slate-800">AI 실천 평가 - 산출물 제출</h1>
+            <h1 className="text-lg font-bold text-slate-800">AI 프로젝트 평가 - 산출물 제출</h1>
             {hasPreset && PRACTICE_TYPES[presetType] && (
               <p className="text-sm text-blue-600 mt-0.5">
                 {PRACTICE_TYPES[presetType]} {presetSession && `| ${presetSession}`}

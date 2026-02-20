@@ -8,7 +8,7 @@ DB_PATH = Path(__file__).parent.parent / "data" / "assessment.db"
 
 
 class AssessmentDB:
-    """AI 교실 실천 평가 시스템 데이터베이스"""
+    """AI 기반 프로젝트 평가 시스템 데이터베이스"""
     
     def __init__(self, db_path: Path = DB_PATH):
         self.db_path = db_path

@@ -19,7 +19,7 @@ function Sidebar({ demo, onToggle }) {
   return (
     <aside className="w-56 bg-slate-900 text-white min-h-screen fixed left-0 top-0 flex flex-col z-10">
       <div className="p-4 border-b border-slate-700">
-        <h1 className="text-lg font-bold">AI 실천 평가</h1>
+        <h1 className="text-lg font-bold">AI 프로젝트 평가</h1>
         <p className="text-xs text-slate-400 mt-1">v2.0</p>
       </div>
       <nav className="flex-1 py-2">
@@ -57,7 +57,7 @@ function Sidebar({ demo, onToggle }) {
       </div>
 
       <div className="px-4 pb-3 text-xs text-slate-600">
-        AI 교실 실천 평가 시스템
+        AI 기반 프로젝트 평가 시스템
       </div>
     </aside>
   );
@@ -88,7 +88,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko">
       <head>
-        <title>{isStudentPage ? 'AI 실천 평가 - 학생' : 'AI 실천 평가 시스템'}</title>
+        <title>{isStudentPage ? 'AI 프로젝트 평가 - 학생' : 'AI 프로젝트 평가 시스템'}</title>
       </head>
       <body className="bg-slate-50">
         <ToastProvider>

@@ -1,8 +1,8 @@
 @echo off
-REM AI 교실 실천 평가 시스템 - Windows 통합 실행 스크립트
+REM AI 기반 프로젝트 평가 시스템 - Windows 통합 실행 스크립트
 
 echo.
-echo 🎓 AI 교실 실천 평가 시스템 시작...
+echo 🎓 AI 기반 프로젝트 평가 시스템 시작...
 echo.
 
 REM 백엔드 시작

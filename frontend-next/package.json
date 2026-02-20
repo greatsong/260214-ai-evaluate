@@ -1,7 +1,7 @@
 {
   "name": "ai-assessment-frontend",
   "version": "2.0.0",
-  "description": "AI 교실 실천 평가 시스템 프론트엔드",
+  "description": "AI 기반 프로젝트 평가 시스템 프론트엔드",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",

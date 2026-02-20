@@ -1,7 +1,7 @@
 {
   "name": "ai-evaluation-backend",
   "version": "1.0.0",
-  "description": "AI 교실 실천 평가 시스템 백엔드",
+  "description": "AI 기반 프로젝트 평가 시스템 백엔드",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

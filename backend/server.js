@@ -1,5 +1,5 @@
 /**
- * AI 교실 실천 평가 시스템 - Express 백엔드
+ * AI 기반 프로젝트 평가 시스템 - Express 백엔드
  */
 
 const express = require('express');

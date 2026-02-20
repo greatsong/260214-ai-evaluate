@@ -1,8 +1,8 @@
-# AI 교실 실천 평가 시스템 v2.1
+# AI 기반 프로젝트 평가 시스템 v2.1
 
-> **배포 URL**: https://frontend-next-5uhonnz8d-greatsongs-projects.vercel.app
+> **배포 URL**: https://ai-evaluate-kappa.vercel.app
 
-고등학교 AI/정보 교과에서 학생들의 **실천 활동 산출물**을 Claude AI로 평가하고, 성장 과정을 추적하며, 생기부 초안까지 생성하는 교사용 평가 지원 시스템입니다.
+고등학교 AI/정보 교과에서 학생들의 **프로젝트 산출물**을 Claude AI로 평가하고, 성장 과정을 추적하며, 생기부 초안까지 생성하는 교사용 평가 지원 시스템입니다.
 
 ---
 
