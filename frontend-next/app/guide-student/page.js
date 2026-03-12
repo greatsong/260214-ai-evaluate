@@ -233,6 +233,29 @@ export default function StudentGuidePage() {
           </div>
         </div>
 
+        {/* 개인정보 보호 안내 */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8">
+          <h2 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <span className="text-slate-500">🔒</span> 개인정보 보호 안내
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { title: '수집 목적', desc: '이름, 학번, 학급 정보는 평가 관리 목적으로만 사용됩니다.' },
+              { title: '보관 기간', desc: '수집된 데이터는 해당 학년도 종료 후 삭제됩니다.' },
+              { title: 'AI 평가와 개인정보', desc: 'AI 평가(Claude API)에는 작성한 글 내용만 전달되며, 이름·학번 등 개인 식별 정보는 전송되지 않습니다.' },
+              { title: '열람 및 삭제 요청', desc: '자신의 데이터 열람이나 삭제를 원하면 담당 선생님께 요청할 수 있습니다.' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-lg p-3 border border-slate-100">
+                <h4 className="font-semibold text-xs text-slate-700 mb-1">{item.title}</h4>
+                <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500 mt-3">
+            자세한 내용은 <a href="/privacy" className="text-blue-600 hover:underline font-medium">개인정보 처리방침</a> 페이지에서 확인할 수 있습니다.
+          </p>
+        </div>
+
         {/* 실천 활동 탭 */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {practices.map(p => (

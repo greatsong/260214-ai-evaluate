@@ -503,6 +503,60 @@ const sections = [
     )
   },
   {
+    id: 'security',
+    title: '인증 및 보안',
+    icon: '🔐',
+    content: () => (
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="text-lg font-bold mb-4">교사 인증 시스템</h3>
+          <p className="text-sm text-slate-600 mb-4">
+            교사 전용 기능(학생 관리, 평가 수행, 포트폴리오 등)은 <strong>로그인 인증</strong>이 필요합니다.
+            인증되지 않은 사용자는 교사 기능에 접근할 수 없습니다.
+          </p>
+          <div className="space-y-3">
+            {[
+              { title: '로그인 페이지', desc: '/login 페이지에서 교사 계정으로 로그인합니다. 인증 후 교사 전용 메뉴가 활성화됩니다.' },
+              { title: '인증 보호 (AuthGuard)', desc: '교사 전용 페이지는 AuthGuard 컴포넌트로 보호됩니다. 로그인하지 않은 상태에서 접근 시 자동으로 로그인 페이지로 이동합니다.' },
+              { title: '학생 데이터 보호', desc: '교사 인증을 통해 학생의 평가 데이터와 개인정보에 대한 무단 접근을 방지합니다.' },
+            ].map((item, i) => (
+              <div key={i} className="flex gap-3 items-start">
+                <span className="text-blue-500 mt-0.5">•</span>
+                <div>
+                  <strong className="text-sm">{item.title}</strong>
+                  <p className="text-xs text-slate-600 mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="text-lg font-bold mb-4">개인정보 및 데이터 보호</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {[
+              { title: '개인정보 처리방침', desc: '/privacy 페이지에서 데이터 수집·이용·보관·삭제에 관한 처리방침을 공개하고 있습니다.', color: 'bg-blue-50 border-blue-200' },
+              { title: 'AI API 비식별화', desc: 'Claude API에는 학생이 작성한 텍스트만 전송됩니다. 이름, 학번 등 개인 식별 정보는 API로 전송되지 않습니다.', color: 'bg-emerald-50 border-emerald-200' },
+              { title: 'SQL 인젝션 방지', desc: '모든 데이터베이스 쿼리에 파라미터화된 쿼리(Parameterized Query)를 사용하여 SQL 인젝션 공격을 차단합니다.', color: 'bg-purple-50 border-purple-200' },
+              { title: '데이터 보관 기간', desc: '학생 데이터는 해당 학년도가 종료된 후 삭제됩니다. 학생 또는 학부모의 열람·삭제 요청에 대응할 수 있어야 합니다.', color: 'bg-amber-50 border-amber-200' },
+            ].map((item, i) => (
+              <div key={i} className={`rounded-lg p-4 border ${item.color}`}>
+                <h4 className="font-semibold text-sm mb-2">{item.title}</h4>
+                <p className="text-xs text-slate-700 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="bg-slate-50 rounded-lg p-4">
+            <p className="text-xs text-slate-600">
+              <strong>참고:</strong> 개인정보 처리방침 전문은 <a href="/privacy" className="text-blue-600 hover:underline font-medium">개인정보 처리방침 페이지</a>에서 확인할 수 있습니다.
+              학생·학부모가 열람할 수 있도록 해당 페이지 링크를 안내해 주세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
     id: 'research',
     title: '학술 근거',
     icon: '🔬',

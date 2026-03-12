@@ -10,7 +10,7 @@ require('dotenv').config();
 const Database = require('./db/database');
 const EvaluationEngine = require('./services/evaluationEngine');
 const errorHandler = require('./middleware/errorHandler');
-const { success } = require('./middleware/apiResponse');
+const { success, fail } = require('./middleware/apiResponse');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -34,6 +34,22 @@ app.use('/api', require('./routes/analysis')(db, evaluationEngine));
 app.get('/api/rubrics', (req, res) => {
   const rubrics = require('./data/rubrics');
   success(res, rubrics);
+});
+
+// 교사 인증
+app.post('/api/auth', (req, res) => {
+  const { password } = req.body;
+  const teacherPassword = process.env.TEACHER_PASSWORD;
+
+  if (!teacherPassword) {
+    return success(res, { authenticated: true });
+  }
+
+  if (password === teacherPassword) {
+    return success(res, { authenticated: true });
+  }
+
+  return fail(res, 'AUTH_FAILED', '비밀번호가 올바르지 않습니다.', 401);
 });
 
 // 헬스체크

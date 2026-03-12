@@ -7,14 +7,17 @@ import { NAV_ITEMS } from '@/lib/constants';
 import { setDemoMode } from '@/lib/api';
 import { ToastProvider } from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import AuthGuard, { useAuth } from '@/components/AuthGuard';
 
 const DemoContext = createContext({ demo: true, toggle: () => {} });
 export function useDemoContext() { return useContext(DemoContext); }
 
 const STUDENT_PATHS = ['/submit', '/guide-student'];
+const STANDALONE_PATHS = ['/login', '/privacy'];
 
 function Sidebar({ demo, onToggle }) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <aside className="w-56 bg-slate-900 text-white min-h-screen fixed left-0 top-0 flex flex-col z-10">
@@ -56,8 +59,20 @@ function Sidebar({ demo, onToggle }) {
         </button>
       </div>
 
-      <div className="px-4 pb-3 text-xs text-slate-600">
-        AI 기반 프로젝트 평가 시스템
+      <div className="px-3 pb-2">
+        <button
+          onClick={logout}
+          className="w-full rounded-lg px-3 py-2 text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+        >
+          로그아웃
+        </button>
+      </div>
+
+      <div className="px-4 pb-3 flex items-center justify-between text-xs text-slate-600">
+        <span>AI 기반 프로젝트 평가 시스템</span>
+        <Link href="/privacy" className="text-slate-500 hover:text-slate-300 transition-colors">
+          개인정보
+        </Link>
       </div>
     </aside>
   );
@@ -69,6 +84,7 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
 
   const isStudentPage = STUDENT_PATHS.some(p => pathname?.startsWith(p));
+  const isStandalonePage = STANDALONE_PATHS.some(p => pathname?.startsWith(p));
 
   // localStorage에서 초기값 복원
   useEffect(() => {
@@ -93,25 +109,31 @@ export default function RootLayout({ children }) {
       <body className="bg-slate-50">
         <ToastProvider>
           <ErrorBoundary>
-            <DemoContext.Provider value={{ demo, toggle }}>
-              {isStudentPage ? (
-                <main className="min-h-screen">
-                  {children}
-                </main>
-              ) : (
-                <>
-                  <Sidebar demo={demo} onToggle={toggle} />
-                  <main className="ml-56 min-h-screen p-6">
-                    {demo && (
-                      <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
-                        데모 모드 — 샘플 데이터로 전체 기능을 미리 체험할 수 있습니다. 실제 사용 시 사이드바에서 데모 OFF로 전환하세요.
-                      </div>
-                    )}
+            <AuthGuard>
+              <DemoContext.Provider value={{ demo, toggle }}>
+                {isStandalonePage ? (
+                  <main className="min-h-screen">
                     {children}
                   </main>
-                </>
-              )}
-            </DemoContext.Provider>
+                ) : isStudentPage ? (
+                  <main className="min-h-screen">
+                    {children}
+                  </main>
+                ) : (
+                  <>
+                    <Sidebar demo={demo} onToggle={toggle} />
+                    <main className="ml-56 min-h-screen p-6">
+                      {demo && (
+                        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
+                          데모 모드 — 샘플 데이터로 전체 기능을 미리 체험할 수 있습니다. 실제 사용 시 사이드바에서 데모 OFF로 전환하세요.
+                        </div>
+                      )}
+                      {children}
+                    </main>
+                  </>
+                )}
+              </DemoContext.Provider>
+            </AuthGuard>
           </ErrorBoundary>
         </ToastProvider>
       </body>
