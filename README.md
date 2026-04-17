@@ -382,8 +382,8 @@ DB 저장 (로컬: SQLite, Vercel: Turso)
 
 ```bash
 # 환경변수로 변경
-CLAUDE_MODEL=claude-sonnet-4-20250514    # 기본 (균형)
-CLAUDE_MODEL=claude-opus-4-1-20250805    # 더 정밀
+CLAUDE_MODEL=claude-sonnet-4-6    # 기본 (균형)
+CLAUDE_MODEL=claude-opus-4-7    # 더 정밀
 CLAUDE_MODEL=claude-haiku-4-5-20251001   # 더 빠르고 저렴
 ```
 
