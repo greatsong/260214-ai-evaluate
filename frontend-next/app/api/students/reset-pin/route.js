@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
 import { clearFailures } from '@/lib/attempts';
+import { requireTeacher } from '@/lib/viewer';
 
 export async function POST(request) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const { student_id } = await request.json();
 
   if (!student_id) {
@@ -27,6 +31,6 @@ export async function POST(request) {
   }
 
   await db.execute({ sql: 'UPDATE students SET pin = NULL WHERE id = ?', args: [student_id] });
-  await clearFailures(db, `pin:${result.rows[0].student_number}`);
+  await clearFailures(db, `pin:${result.rows[0].student_number}`, true);
   return NextResponse.json({ success: true, name: result.rows[0].name });
 }

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
+import { requireTeacher } from '@/lib/viewer';
 
-export async function GET() {
+export async function GET(request) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const db = await ensureDB();
   if (!db) {
     const { demoStudents } = await import('@/lib/demoData');
@@ -18,6 +22,9 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { student_number, name, class_name, number } = body;
 

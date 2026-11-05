@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { accessLevel, authDisabled, resolveViewer, signSession, verifySession, TEACHER_COOKIE, STUDENT_COOKIE } from '../../lib/session.mjs';
+import { accessLevel, authDisabled, resolveViewer, sessionSecret, signSession, verifySession, TEACHER_COOKIE, STUDENT_COOKIE } from '../../lib/session.mjs';
 import { hashPin, isHashedPin, maskName, safeEqual, verifyPin } from '../../lib/pin.mjs';
 
 const env = { NODE_ENV: 'production', SESSION_SECRET: 'test-only-secret' };
@@ -29,6 +29,14 @@ test('운영에서 비밀값이 없으면 인증이 꺼지지 않는다', async 
   assert.equal(await resolveViewer(() => undefined, { NODE_ENV: 'production' }), null);
   assert.equal(authDisabled({ NODE_ENV: 'development' }), true);
   assert.equal(authDisabled({ NODE_ENV: 'development', TEACHER_PASSWORD: 'x' }), false);
+});
+
+test('운영에서는 교사 비밀번호로 세션을 서명하지 않는다', async () => {
+  const env = { NODE_ENV: 'production', TEACHER_PASSWORD: 'guessable' };
+  assert.equal(sessionSecret(env), '');
+  const forged = await signSession({ role: 'teacher' }, 60, 'guessable');
+  assert.equal(await resolveViewer(() => forged, env), null);
+  assert.equal(sessionSecret({ NODE_ENV: 'development', TEACHER_PASSWORD: 'x' }), 'x');
 });
 
 test('경로별 접근 규칙', () => {

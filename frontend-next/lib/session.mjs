@@ -3,7 +3,8 @@
  * Web Crypto만 사용하므로 두 런타임에서 동작한다.
  *
  * 토큰 형식: base64url(JSON payload).base64url(HMAC-SHA256)
- * 서명 키는 SESSION_SECRET을 우선하고, 없으면 TEACHER_PASSWORD를 사용한다.
+ * 서명 키는 SESSION_SECRET이다. 학생도 자기 쿠키를 볼 수 있으므로 사람이 정한 비밀번호로
+ * 서명하면 오프라인 대입으로 교사 세션을 위조할 수 있다. 그래서 운영에서는 다른 값으로 대체하지 않는다.
  */
 
 export const TEACHER_COOKIE = 'ae_teacher';
@@ -28,8 +29,14 @@ function b64urlDecode(str) {
   return bytes;
 }
 
+// Next는 process.env.NODE_ENV 리터럴만 빌드 때 치환한다. 런타임 env에 값이 없어도 운영으로 판단되게 한다.
+function isProduction(env) {
+  return (env.NODE_ENV ?? process.env.NODE_ENV) === 'production';
+}
+
 export function sessionSecret(env = process.env) {
-  return env.SESSION_SECRET || env.TEACHER_PASSWORD || '';
+  if (env.SESSION_SECRET) return env.SESSION_SECRET;
+  return isProduction(env) ? '' : (env.TEACHER_PASSWORD || '');
 }
 
 /**
@@ -37,7 +44,7 @@ export function sessionSecret(env = process.env) {
  * 운영(NODE_ENV=production)에서는 비밀값이 없으면 API를 열지 않는다.
  */
 export function authDisabled(env = process.env) {
-  return env.NODE_ENV !== 'production' && !sessionSecret(env);
+  return !isProduction(env) && !sessionSecret(env);
 }
 
 async function hmacKey(secret) {
@@ -99,7 +106,7 @@ export function accessLevel(method, pathname) {
 export function cookieOptions(maxAge, env = process.env) {
   return {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
+    secure: isProduction(env),
     sameSite: 'lax',
     path: '/',
     maxAge,

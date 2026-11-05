@@ -132,6 +132,12 @@ function SubmitForm() {
     }
   };
 
+  // 공용 컴퓨터에 학생 세션이 남지 않게 한다
+  const handleFinish = async () => {
+    await fetch('/api/auth', { method: 'DELETE' }).catch(() => {});
+    window.location.assign('/submit');
+  };
+
   const handleReset = () => {
     setRawText('');
     setSubmitted(false);
@@ -157,6 +163,10 @@ function SubmitForm() {
             <a href="/submit/my" className="bg-slate-100 text-slate-700 rounded-lg px-6 py-2.5 text-sm font-medium hover:bg-slate-200">
               내 제출 확인
             </a>
+            <button onClick={handleFinish}
+              className="bg-slate-100 text-slate-700 rounded-lg px-6 py-2.5 text-sm font-medium hover:bg-slate-200">
+              마치기
+            </button>
           </div>
         </div>
       </div>

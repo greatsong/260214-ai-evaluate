@@ -1,57 +1,56 @@
 /**
- * 실패 횟수 제한. DB가 있으면 auth_attempts 테이블에 기록해 서버리스 인스턴스 사이에서 공유하고,
+ * 시도 횟수 제한. DB가 있으면 auth_attempts 테이블에 기록해 서버리스 인스턴스 사이에서 공유하고,
  * 없으면 인스턴스 메모리를 사용한다. 값은 비밀번호가 아니라 횟수만 저장한다.
+ *
+ * 비교하기 전에 먼저 횟수를 올린다. 병렬 요청이 한도 검사를 함께 통과하지 못하게 하기 위해서다.
+ * 성공하면 clearFailures로 지운다.
  */
 const memory = new Map();
 
-function readMemory(key, now) {
+function reserveInMemory(key, limit, windowMs, now) {
   const entry = memory.get(key);
-  if (!entry || entry.resetAt <= now) return { count: 0, resetAt: 0 };
-  return entry;
+  const active = entry && entry.resetAt > now ? entry : { count: 0, resetAt: now + windowMs };
+  active.count += 1;
+  memory.set(key, active);
+  return active;
 }
 
-async function read(db, key, now) {
-  if (!db) return readMemory(key, now);
-  const result = await db.execute({ sql: 'SELECT count, reset_at FROM auth_attempts WHERE key = ?', args: [key] });
-  const row = result.rows[0];
-  if (!row || Number(row.reset_at) <= now) return { count: 0, resetAt: 0 };
-  return { count: Number(row.count), resetAt: Number(row.reset_at) };
-}
-
-/** 한도를 넘었으면 남은 초를, 아니면 0을 돌려준다. */
-export async function lockedSeconds(db, key, limit) {
+/** 시도 한 번을 예약한다. 한도를 넘었으면 남은 초를, 아니면 0을 돌려준다. */
+export async function reserveAttempt(db, key, limit, windowMs) {
   const now = Date.now();
-  const { count, resetAt } = await read(db, key, now);
-  return count >= limit ? Math.ceil((resetAt - now) / 1000) : 0;
-}
-
-export async function recordFailure(db, key, windowMs) {
-  const now = Date.now();
-  const current = await read(db, key, now);
-  const next = { count: current.count + 1, resetAt: current.resetAt || now + windowMs };
-  if (!db) {
-    memory.set(key, next);
-    return;
+  let entry;
+  if (db) {
+    const result = await db.execute({
+      sql: `INSERT INTO auth_attempts (key, count, reset_at) VALUES (?, 1, ?)
+            ON CONFLICT(key) DO UPDATE SET
+              count = CASE WHEN reset_at <= ? THEN 1 ELSE count + 1 END,
+              reset_at = CASE WHEN reset_at <= ? THEN excluded.reset_at ELSE reset_at END
+            RETURNING count, reset_at`,
+      args: [key, now + windowMs, now, now],
+    });
+    entry = { count: Number(result.rows[0].count), resetAt: Number(result.rows[0].reset_at) };
+  } else {
+    entry = reserveInMemory(key, limit, windowMs, now);
   }
-  await db.execute({
-    sql: `INSERT INTO auth_attempts (key, count, reset_at) VALUES (?, ?, ?)
-          ON CONFLICT(key) DO UPDATE SET count = excluded.count, reset_at = excluded.reset_at`,
-    args: [key, next.count, next.resetAt],
-  });
+  return entry.count > limit ? Math.max(1, Math.ceil((entry.resetAt - now) / 1000)) : 0;
 }
 
-export async function clearFailures(db, key) {
-  memory.delete(key);
-  if (db) await db.execute({ sql: 'DELETE FROM auth_attempts WHERE key = ?', args: [key] });
+/** @param {boolean} [withPrefix] key로 시작하는 하위 키(`key:주소`)도 함께 지운다 */
+export async function clearFailures(db, key, withPrefix = false) {
+  for (const stored of memory.keys()) {
+    if (stored === key || (withPrefix && stored.startsWith(`${key}:`))) memory.delete(stored);
+  }
+  if (!db) return;
+  if (withPrefix) {
+    await db.execute({ sql: 'DELETE FROM auth_attempts WHERE key = ? OR key LIKE ?', args: [key, `${key}:%`] });
+  } else {
+    await db.execute({ sql: 'DELETE FROM auth_attempts WHERE key = ?', args: [key] });
+  }
 }
 
 /** 요청 횟수 제한(메모리). 학번을 차례로 넣어 보는 조회를 늦춘다. */
 export function allowRequest(key, limit, windowMs) {
-  const now = Date.now();
-  const entry = readMemory(key, now);
-  if (entry.count >= limit) return false;
-  memory.set(key, { count: entry.count + 1, resetAt: entry.resetAt || now + windowMs });
-  return true;
+  return reserveInMemory(key, limit, windowMs, Date.now()).count <= limit;
 }
 
 export function clientAddress(request) {

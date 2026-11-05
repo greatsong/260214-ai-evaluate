@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
-import { getViewer } from '@/lib/viewer';
+import { requireViewer } from '@/lib/viewer';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const artifactId = searchParams.get('artifact_id');
-  const viewer = await getViewer(request);
+  const gate = await requireViewer(request);
+  if (gate.response) return gate.response;
+  const { viewer } = gate;
   // 학생은 쿼리와 관계없이 본인 평가만 조회한다
   const studentId = viewer?.role === 'student' ? viewer.id : searchParams.get('student_id');
   const evalType = searchParams.get('eval_type');
