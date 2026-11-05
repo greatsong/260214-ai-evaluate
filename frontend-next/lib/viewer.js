@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server';
+import { ensureDB } from './dbInit';
 import { resolveViewer } from './session.mjs';
 
+/** 삭제되었거나 비밀번호가 초기화된 학생의 세션을 거절한다. */
+async function studentSessionIsCurrent(viewer) {
+  const db = await ensureDB();
+  if (!db) return true;
+  const result = await db.execute({ sql: 'SELECT session_version FROM students WHERE id = ?', args: [viewer.id] });
+  return result.rows.length === 1 && Number(result.rows[0].session_version) === viewer.version;
+}
+
 /** 라우트 핸들러에서 현재 사용자를 판별한다. */
-export function getViewer(request) {
-  return resolveViewer((name) => request.cookies.get(name)?.value);
+export async function getViewer(request) {
+  const viewer = await resolveViewer((name) => request.cookies.get(name)?.value);
+  if (viewer?.role === 'student' && !(await studentSessionIsCurrent(viewer))) return null;
+  return viewer;
 }
 
 function denied(status, code, message) {

@@ -46,6 +46,7 @@ export async function POST(request) {
     await clearFailures(db, attemptKey);
     const response = NextResponse.json({ success: true, data: { authenticated: true } });
     response.cookies.set(TEACHER_COOKIE, await signSession({ role: 'teacher' }, TEACHER_TTL_SEC), cookieOptions(TEACHER_TTL_SEC));
+    response.cookies.set(STUDENT_COOKIE, '', cookieOptions(0));
     return response;
   }
 

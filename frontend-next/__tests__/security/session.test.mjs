@@ -21,7 +21,7 @@ test('학생 쿠키를 교사 쿠키 자리에 넣어도 교사가 되지 않는
   const swapped = await resolveViewer((name) => (name === TEACHER_COOKIE ? student : undefined), env);
   assert.equal(swapped, null);
   const normal = await resolveViewer((name) => (name === STUDENT_COOKIE ? student : undefined), env);
-  assert.deepEqual(normal, { role: 'student', id: 7 });
+  assert.deepEqual(normal, { role: 'student', id: 7, version: 0 });
 });
 
 test('운영에서 비밀값이 없으면 인증이 꺼지지 않는다', async () => {

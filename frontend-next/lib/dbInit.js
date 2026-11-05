@@ -69,6 +69,13 @@ export async function ensureDB() {
     CREATE INDEX IF NOT EXISTS idx_students_student_number ON students(student_number);
   `);
 
+  // 교사가 비밀번호를 초기화하면 기존 학생 세션을 끊기 위한 값. 이미 있으면 무시한다.
+  try {
+    await db.execute('ALTER TABLE students ADD COLUMN session_version INTEGER NOT NULL DEFAULT 0');
+  } catch {
+    // 이미 존재
+  }
+
   _initialized = true;
   return db;
 }

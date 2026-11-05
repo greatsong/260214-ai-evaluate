@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
-import { allowRequest, clearFailures, clientAddress, reserveAttempt } from '@/lib/attempts';
+import { clearFailures, clientAddress, reserveAttempt } from '@/lib/attempts';
 import { hashPin, isHashedPin, maskName, verifyPin } from '@/lib/pin.mjs';
-import { STUDENT_COOKIE, STUDENT_TTL_SEC, authDisabled, cookieOptions, signSession } from '@/lib/session.mjs';
+import { STUDENT_COOKIE, STUDENT_TTL_SEC, TEACHER_COOKIE, authDisabled, cookieOptions, signSession } from '@/lib/session.mjs';
 
 // 주소별 한도가 먼저 걸린다. 학번 전체 한도는 여러 주소에서 나누어 대입하는 경우를 막는다.
 // 학번만으로 잠그면 한 학생이 학급 전원을 잠글 수 있어 주소를 함께 본다.
@@ -35,11 +35,11 @@ export async function GET(request) {
   if (searchParams.has('pin')) {
     return NextResponse.json({ error: '비밀번호는 주소에 넣을 수 없습니다.' }, { status: 400 });
   }
-  if (!allowRequest(`lookup:${clientAddress(request)}`, LOOKUP_LIMIT_PER_MINUTE, 60 * 1000)) {
+  const db = await ensureDB();
+  if (await reserveAttempt(db, `rate:lookup:${clientAddress(request)}`, LOOKUP_LIMIT_PER_MINUTE, 60 * 1000)) {
     return NextResponse.json({ error: '요청이 너무 많습니다. 잠시 뒤 다시 시도해 주세요.' }, { status: 429 });
   }
 
-  const db = await ensureDB();
   const student = await findStudent(db, studentNumber);
   if (!student) {
     return NextResponse.json({ error: '해당 학번의 학생을 찾을 수 없습니다.' }, { status: 404 });
@@ -61,11 +61,11 @@ export async function POST(request) {
   }
 
   const address = clientAddress(request);
-  if (!allowRequest(`pin-post:${address}`, LOOKUP_LIMIT_PER_MINUTE, 60 * 1000)) {
+  const db = await ensureDB();
+  if (await reserveAttempt(db, `rate:pin:${address}`, LOOKUP_LIMIT_PER_MINUTE, 60 * 1000)) {
     return NextResponse.json({ error: '요청이 너무 많습니다. 잠시 뒤 다시 시도해 주세요.' }, { status: 429 });
   }
 
-  const db = await ensureDB();
   const attemptKey = `pin:${studentNumber}`;
   const wait = await reserveAttempt(db, `${attemptKey}:${address}`, PIN_FAILURE_LIMIT_PER_ADDRESS, PIN_FAILURE_WINDOW_MS)
     || await reserveAttempt(db, attemptKey, PIN_FAILURE_LIMIT_PER_STUDENT, PIN_FAILURE_WINDOW_MS);
@@ -103,8 +103,13 @@ export async function POST(request) {
     verified: true,
   });
   if (!authDisabled()) {
-    const token = await signSession({ role: 'student', id: Number(student.id) }, STUDENT_TTL_SEC);
+    const token = await signSession(
+      { role: 'student', id: Number(student.id), v: Number(student.session_version) || 0 },
+      STUDENT_TTL_SEC
+    );
     response.cookies.set(STUDENT_COOKIE, token, cookieOptions(STUDENT_TTL_SEC));
+    // 공용 브라우저에 남은 교사 세션이 학생 화면에서 동작하지 않게 한다
+    response.cookies.set(TEACHER_COOKIE, '', cookieOptions(0));
   }
   return response;
 }

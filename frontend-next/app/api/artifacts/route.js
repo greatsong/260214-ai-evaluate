@@ -41,6 +41,14 @@ export async function POST(request) {
   // 학생은 본문의 student_id가 아니라 세션의 본인 id로만 제출한다
   const student_id = viewer?.role === 'student' ? viewer.id : body.student_id;
 
+  // 공용 브라우저의 다른 탭에서 로그인한 학생 이름으로 저장되는 일을 막는다
+  if (viewer?.role === 'student' && body.student_id && Number(body.student_id) !== viewer.id) {
+    return NextResponse.json(
+      { success: false, error: { code: 'SESSION_CHANGED', message: '다른 학생으로 로그인되어 있습니다. 다시 확인해 주세요.' } },
+      { status: 409 }
+    );
+  }
+
   if (typeof raw_text === 'string' && raw_text.length > MAX_RAW_TEXT_LENGTH) {
     return NextResponse.json(
       { success: false, error: { code: 'VALIDATION', message: '산출물이 너무 깁니다.' } },

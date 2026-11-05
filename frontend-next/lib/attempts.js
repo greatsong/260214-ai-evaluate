@@ -48,11 +48,6 @@ export async function clearFailures(db, key, withPrefix = false) {
   }
 }
 
-/** 요청 횟수 제한(메모리). 학번을 차례로 넣어 보는 조회를 늦춘다. */
-export function allowRequest(key, limit, windowMs) {
-  return reserveInMemory(key, limit, windowMs, Date.now()).count <= limit;
-}
-
 export function clientAddress(request) {
   return (request.headers.get('x-forwarded-for') || '').split(',')[0].trim()
     || request.headers.get('x-real-ip')

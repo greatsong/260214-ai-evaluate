@@ -61,7 +61,8 @@ app.get('/api/health', (req, res) => {
 app.use(errorHandler);
 
 // 서버 시작
-app.listen(PORT, () => {
+// 인증이 없는 로컬 전용 서버이므로 기본은 이 컴퓨터에서만 접속할 수 있게 한다
+app.listen(PORT, process.env.HOST || '127.0.0.1', () => {
   console.log(`백엔드 서버가 포트 ${PORT}에서 실행 중입니다`);
   console.log(`API: http://localhost:${PORT}/api`);
 });

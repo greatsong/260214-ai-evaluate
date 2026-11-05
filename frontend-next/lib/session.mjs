@@ -76,7 +76,7 @@ export async function verifySession(token, secret = sessionSecret()) {
 /**
  * 요청의 쿠키에서 사용자를 판별한다.
  * @param {(name: string) => string|undefined} readCookie
- * @returns {Promise<{role:'teacher'}|{role:'student',id:number}|null>}
+ * @returns {Promise<{role:'teacher'}|{role:'student',id:number,version:number}|null>}
  */
 export async function resolveViewer(readCookie, env = process.env) {
   if (authDisabled(env)) return { role: 'teacher' };
@@ -84,7 +84,9 @@ export async function resolveViewer(readCookie, env = process.env) {
   const teacher = await verifySession(readCookie(TEACHER_COOKIE), secret);
   if (teacher?.role === 'teacher') return { role: 'teacher' };
   const student = await verifySession(readCookie(STUDENT_COOKIE), secret);
-  if (student?.role === 'student' && Number.isInteger(student.id)) return { role: 'student', id: student.id };
+  if (student?.role === 'student' && Number.isInteger(student.id)) {
+    return { role: 'student', id: student.id, version: Number(student.v) || 0 };
+  }
   return null;
 }
 

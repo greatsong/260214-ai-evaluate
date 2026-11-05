@@ -30,7 +30,7 @@ export async function POST(request) {
     return NextResponse.json({ error: '학생을 찾을 수 없습니다.' }, { status: 404 });
   }
 
-  await db.execute({ sql: 'UPDATE students SET pin = NULL WHERE id = ?', args: [student_id] });
+  await db.execute({ sql: 'UPDATE students SET pin = NULL, session_version = session_version + 1 WHERE id = ?', args: [student_id] });
   await clearFailures(db, `pin:${result.rows[0].student_number}`, true);
   return NextResponse.json({ success: true, name: result.rows[0].name });
 }

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
 import { hashPin } from '@/lib/pin.mjs';
-import { allowRequest, clientAddress } from '@/lib/attempts';
-import { STUDENT_COOKIE, STUDENT_TTL_SEC, authDisabled, cookieOptions, sessionSecret, signSession } from '@/lib/session.mjs';
+import { clientAddress, reserveAttempt } from '@/lib/attempts';
+import { STUDENT_COOKIE, STUDENT_TTL_SEC, TEACHER_COOKIE, authDisabled, cookieOptions, sessionSecret, signSession } from '@/lib/session.mjs';
 
 // 학급 전체가 처음 접속해도 걸리지 않고, 학번을 차례로 선점하는 시도는 늦추는 값이다.
 const SET_PIN_LIMIT_PER_HOUR = 200;
@@ -11,7 +11,8 @@ export async function POST(request) {
   if (!authDisabled() && !sessionSecret()) {
     return NextResponse.json({ error: '서버 인증 설정이 필요합니다.' }, { status: 503 });
   }
-  if (!allowRequest(`set-pin:${clientAddress(request)}`, SET_PIN_LIMIT_PER_HOUR, 60 * 60 * 1000)) {
+  const db = await ensureDB();
+  if (await reserveAttempt(db, `rate:set-pin:${clientAddress(request)}`, SET_PIN_LIMIT_PER_HOUR, 60 * 60 * 1000)) {
     return NextResponse.json({ error: '요청이 너무 많습니다. 잠시 뒤 다시 시도해 주세요.' }, { status: 429 });
   }
 
@@ -26,7 +27,6 @@ export async function POST(request) {
     return NextResponse.json({ error: '비밀번호는 4자리 이상이어야 합니다.' }, { status: 400 });
   }
 
-  const db = await ensureDB();
   let student;
 
   if (!db) {
@@ -70,8 +70,13 @@ export async function POST(request) {
     verified: true,
   });
   if (!authDisabled()) {
-    const token = await signSession({ role: 'student', id: Number(student.id) }, STUDENT_TTL_SEC);
+    const token = await signSession(
+      { role: 'student', id: Number(student.id), v: Number(student.session_version) || 0 },
+      STUDENT_TTL_SEC
+    );
     response.cookies.set(STUDENT_COOKIE, token, cookieOptions(STUDENT_TTL_SEC));
+    // 공용 브라우저에 남은 교사 세션이 학생 화면에서 동작하지 않게 한다
+    response.cookies.set(TEACHER_COOKIE, '', cookieOptions(0));
   }
   return response;
 }
