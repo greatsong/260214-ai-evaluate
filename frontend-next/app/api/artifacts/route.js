@@ -9,8 +9,16 @@ export async function GET(request) {
   const gate = await requireViewer(request);
   if (gate.response) return gate.response;
   const { viewer } = gate;
-  // 학생은 쿼리와 관계없이 본인 산출물만 조회한다
-  const studentId = viewer?.role === 'student' ? viewer.id : searchParams.get('student_id');
+  const requested = searchParams.get('student_id');
+  // 다른 탭의 로그인으로 세션이 바뀌었으면 다른 학생의 기록을 보여 주지 않고 거절한다
+  if (viewer?.role === 'student' && requested && Number(requested) !== viewer.id) {
+    return NextResponse.json(
+      { success: false, error: { code: 'SESSION_CHANGED', message: '다른 학생으로 로그인되어 있습니다. 다시 확인해 주세요.' } },
+      { status: 409 }
+    );
+  }
+  // 학생은 본인 산출물만 조회한다
+  const studentId = viewer?.role === 'student' ? viewer.id : requested;
   const practiceType = searchParams.get('practice_type');
 
   const db = await ensureDB();

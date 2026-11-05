@@ -87,12 +87,18 @@ export async function POST(request) {
     return NextResponse.json({ error: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
   }
 
-  await clearFailures(db, attemptKey, true);
-
-  // 해시 도입 전에 평문으로 저장된 값을 바꾼다
+  // 해시 도입 전에 평문으로 저장된 값을 바꾼다. 그사이 교사가 초기화했으면 예전 비밀번호를 되살리지 않는다.
   if (db && !isHashedPin(student.pin)) {
-    await db.execute({ sql: 'UPDATE students SET pin = ? WHERE id = ?', args: [hashPin(pin), student.id] });
+    const upgraded = await db.execute({
+      sql: 'UPDATE students SET pin = ? WHERE id = ? AND pin = ? AND session_version = ?',
+      args: [hashPin(pin), student.id, student.pin, student.session_version ?? 0],
+    });
+    if (upgraded.rowsAffected !== 1) {
+      return NextResponse.json({ error: '비밀번호가 변경되었습니다. 다시 확인해 주세요.' }, { status: 409 });
+    }
   }
+
+  await clearFailures(db, attemptKey, true);
 
   const response = NextResponse.json({
     id: student.id,
