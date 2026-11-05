@@ -17,14 +17,22 @@ export async function POST(request) {
     }
 
     const engine = new EvaluationEngine(apiKey);
-    const result = await engine.generateGrowthAnalysis(practice_type, artifacts);
+    const db = await ensureDB();
+
+    // 처리방침대로 학생 이름을 지운 뒤 외부 API로 보낸다
+    let studentName = null;
+    if (db && student_id) {
+      const found = await db.execute({ sql: 'SELECT name FROM students WHERE id = ?', args: [Number(student_id)] });
+      studentName = found.rows[0]?.name || null;
+    }
+    const safeArtifacts = artifacts.map(a => ({ ...a, raw_text: engine.deidentify(a.raw_text, studentName) }));
+    const result = await engine.generateGrowthAnalysis(practice_type, safeArtifacts);
 
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
     // Turso DB에 성장 분석 결과 저장
-    const db = await ensureDB();
     if (db && student_id) {
       const artifactIds = artifacts.map(a => a.id).filter(Boolean);
       await db.execute({

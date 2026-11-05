@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit",
+    "test:security": "node --test __tests__/security/session.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",

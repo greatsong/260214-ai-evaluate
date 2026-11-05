@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
+import { clearFailures } from '@/lib/attempts';
 
 export async function POST(request) {
   const { student_id } = await request.json();
@@ -20,11 +21,12 @@ export async function POST(request) {
     return NextResponse.json({ success: true, name: student.name });
   }
 
-  const result = await db.execute({ sql: 'SELECT name FROM students WHERE id = ?', args: [student_id] });
+  const result = await db.execute({ sql: 'SELECT name, student_number FROM students WHERE id = ?', args: [student_id] });
   if (result.rows.length === 0) {
     return NextResponse.json({ error: '학생을 찾을 수 없습니다.' }, { status: 404 });
   }
 
   await db.execute({ sql: 'UPDATE students SET pin = NULL WHERE id = ?', args: [student_id] });
+  await clearFailures(db, `pin:${result.rows[0].student_number}`);
   return NextResponse.json({ success: true, name: result.rows[0].name });
 }

@@ -52,7 +52,11 @@ export default function MySubmissionsPage() {
     setVerifying(true);
     setPinError('');
     try {
-      const res = await fetch(`/api/students/lookup?number=${studentNumber}&pin=${pin}`);
+      const res = await fetch('/api/students/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: studentNumber, pin }),
+      });
       const data = await res.json();
       if (!res.ok) { setPinError(data.error); setVerifying(false); return; }
       setStudent(data);
@@ -182,7 +186,7 @@ export default function MySubmissionsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-slate-500">제출 {artifacts.length}건</span>
-                <button onClick={() => { setStudent(null); setLookupResult(null); setArtifacts([]); setEvaluations({}); setSelectedArtifact(null); setStudentNumber(''); setPin(''); }}
+                <button onClick={() => { fetch('/api/auth', { method: 'DELETE' }).catch(() => {}); setStudent(null); setLookupResult(null); setArtifacts([]); setEvaluations({}); setSelectedArtifact(null); setStudentNumber(''); setPin(''); }}
                   className="text-xs text-slate-400 hover:text-slate-600">로그아웃</button>
               </div>
             </div>

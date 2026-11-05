@@ -5,10 +5,15 @@ export async function GET() {
   const db = await ensureDB();
   if (!db) {
     const { demoStudents } = await import('@/lib/demoData');
-    return NextResponse.json({ success: true, data: [...demoStudents] });
+    const data = demoStudents.map(({ pin, ...student }) => ({ ...student, has_pin: !!pin }));
+    return NextResponse.json({ success: true, data });
   }
 
-  const result = await db.execute('SELECT * FROM students ORDER BY class_name, number');
+  // pin 열은 응답에 넣지 않는다
+  const result = await db.execute(
+    `SELECT id, student_number, name, class_name, number, created_at, pin IS NOT NULL AS has_pin
+     FROM students ORDER BY class_name, number`
+  );
   return NextResponse.json({ success: true, data: result.rows });
 }
 

@@ -93,7 +93,11 @@ function SubmitForm() {
     setVerifying(true);
     setPinError('');
     try {
-      const res = await fetch(`/api/students/lookup?number=${studentNumber}&pin=${pin}`);
+      const res = await fetch('/api/students/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: studentNumber, pin }),
+      });
       const data = await res.json();
       if (res.ok) {
         setStudent(data);

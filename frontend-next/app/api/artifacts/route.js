@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
+import { getViewer } from '@/lib/viewer';
+
+const MAX_RAW_TEXT_LENGTH = 200000;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const studentId = searchParams.get('student_id');
+  const viewer = await getViewer(request);
+  // 학생은 쿼리와 관계없이 본인 산출물만 조회한다
+  const studentId = viewer?.role === 'student' ? viewer.id : searchParams.get('student_id');
   const practiceType = searchParams.get('practice_type');
 
   const db = await ensureDB();
@@ -27,7 +32,17 @@ export async function GET(request) {
 
 export async function POST(request) {
   const body = await request.json();
-  const { student_id, practice_type, raw_text, date, session } = body;
+  const { practice_type, raw_text, date, session } = body;
+  const viewer = await getViewer(request);
+  // 학생은 본문의 student_id가 아니라 세션의 본인 id로만 제출한다
+  const student_id = viewer?.role === 'student' ? viewer.id : body.student_id;
+
+  if (typeof raw_text === 'string' && raw_text.length > MAX_RAW_TEXT_LENGTH) {
+    return NextResponse.json(
+      { success: false, error: { code: 'VALIDATION', message: '산출물이 너무 깁니다.' } },
+      { status: 413 }
+    );
+  }
 
   if (!student_id || !practice_type || !raw_text) {
     return NextResponse.json(

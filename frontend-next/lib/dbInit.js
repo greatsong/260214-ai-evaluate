@@ -57,6 +57,12 @@ export async function ensureDB() {
       FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS auth_attempts (
+      key TEXT PRIMARY KEY,
+      count INTEGER NOT NULL,
+      reset_at INTEGER NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_artifacts_student_id ON artifacts(student_id);
     CREATE INDEX IF NOT EXISTS idx_artifacts_practice_type ON artifacts(practice_type);
     CREATE INDEX IF NOT EXISTS idx_evaluations_artifact_id ON evaluations(artifact_id);

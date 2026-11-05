@@ -22,9 +22,14 @@ export default function AuthGuard({ children }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const stored = localStorage.getItem('teacherAuth');
-    setAuthenticated(stored === 'true');
-    setChecking(false);
+    // 로그인 상태는 서버의 httpOnly 세션 쿠키로 판단한다
+    let cancelled = false;
+    fetch('/api/auth')
+      .then(res => res.json())
+      .then(body => { if (!cancelled) setAuthenticated(body?.data?.authenticated === true); })
+      .catch(() => { if (!cancelled) setAuthenticated(false); })
+      .finally(() => { if (!cancelled) setChecking(false); });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -35,26 +40,26 @@ export default function AuthGuard({ children }) {
     }
   }, [authenticated, pathname, checking, router]);
 
-  const logout = () => {
-    localStorage.removeItem('teacherAuth');
+  const logout = async () => {
+    await fetch('/api/auth', { method: 'DELETE' }).catch(() => {});
     setAuthenticated(false);
     router.push('/login');
   };
+
+  // 공개 경로는 인증 없이 접근 가능하고 세션 확인을 기다리지 않는다
+  if (isPublicPath(pathname)) {
+    return (
+      <AuthContext.Provider value={{ authenticated, logout }}>
+        {children}
+      </AuthContext.Provider>
+    );
+  }
 
   if (checking) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <p className="text-slate-400 text-sm">로딩 중...</p>
       </div>
-    );
-  }
-
-  // 공개 경로는 인증 없이 접근 가능
-  if (isPublicPath(pathname)) {
-    return (
-      <AuthContext.Provider value={{ authenticated, logout }}>
-        {children}
-      </AuthContext.Provider>
     );
   }
 

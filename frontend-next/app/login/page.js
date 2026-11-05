@@ -1,13 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -23,8 +21,8 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.success) {
-        localStorage.setItem('teacherAuth', 'true');
-        router.push('/');
+        // 전체 새로고침으로 AuthGuard가 세션 쿠키를 다시 확인하게 한다
+        window.location.assign('/');
       } else {
         setError(data.error?.message || '인증에 실패했습니다.');
       }
