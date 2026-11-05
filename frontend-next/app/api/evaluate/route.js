@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import EvaluationEngine from '@/lib/evaluationEngine';
+import { requireTeacher } from '@/lib/viewer';
 import { ensureDB } from '@/lib/dbInit';
 
 export async function POST(request) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   try {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {

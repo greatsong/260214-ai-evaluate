@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
+import { requireTeacher } from '@/lib/viewer';
 
 export async function GET(request, { params }) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const { id } = await params;
   const db = await ensureDB();
 
@@ -14,10 +18,15 @@ export async function GET(request, { params }) {
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, data: student });
+    const { pin, ...safeStudent } = student;
+    return NextResponse.json({ success: true, data: { ...safeStudent, has_pin: !!pin } });
   }
 
-  const result = await db.execute({ sql: 'SELECT * FROM students WHERE id = ?', args: [Number(id)] });
+  const result = await db.execute({
+    sql: `SELECT id, student_number, name, class_name, number, created_at, pin IS NOT NULL AS has_pin
+          FROM students WHERE id = ?`,
+    args: [Number(id)],
+  });
   if (result.rows.length === 0) {
     return NextResponse.json(
       { success: false, error: { code: 'NOT_FOUND', message: '학생을 찾을 수 없습니다.' } },
@@ -28,6 +37,9 @@ export async function GET(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const { id } = await params;
   const db = await ensureDB();
 

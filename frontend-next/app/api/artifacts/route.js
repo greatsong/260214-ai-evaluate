@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
+import { requireViewer } from '@/lib/viewer';
+
+const MAX_RAW_TEXT_LENGTH = 200000;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const studentId = searchParams.get('student_id');
+  const gate = await requireViewer(request);
+  if (gate.response) return gate.response;
+  const { viewer } = gate;
+  const requested = searchParams.get('student_id');
+  // 다른 탭의 로그인으로 세션이 바뀌었으면 다른 학생의 기록을 보여 주지 않고 거절한다
+  if (viewer?.role === 'student' && requested && Number(requested) !== viewer.id) {
+    return NextResponse.json(
+      { success: false, error: { code: 'SESSION_CHANGED', message: '다른 학생으로 로그인되어 있습니다. 다시 확인해 주세요.' } },
+      { status: 409 }
+    );
+  }
+  // 학생은 본인 산출물만 조회한다
+  const studentId = viewer?.role === 'student' ? viewer.id : requested;
   const practiceType = searchParams.get('practice_type');
 
   const db = await ensureDB();
@@ -27,7 +42,27 @@ export async function GET(request) {
 
 export async function POST(request) {
   const body = await request.json();
-  const { student_id, practice_type, raw_text, date, session } = body;
+  const { practice_type, raw_text, date, session } = body;
+  const gate = await requireViewer(request);
+  if (gate.response) return gate.response;
+  const { viewer } = gate;
+  // 학생은 본문의 student_id가 아니라 세션의 본인 id로만 제출한다
+  const student_id = viewer?.role === 'student' ? viewer.id : body.student_id;
+
+  // 공용 브라우저의 다른 탭에서 로그인한 학생 이름으로 저장되는 일을 막는다
+  if (viewer?.role === 'student' && body.student_id && Number(body.student_id) !== viewer.id) {
+    return NextResponse.json(
+      { success: false, error: { code: 'SESSION_CHANGED', message: '다른 학생으로 로그인되어 있습니다. 다시 확인해 주세요.' } },
+      { status: 409 }
+    );
+  }
+
+  if (typeof raw_text === 'string' && raw_text.length > MAX_RAW_TEXT_LENGTH) {
+    return NextResponse.json(
+      { success: false, error: { code: 'VALIDATION', message: '산출물이 너무 깁니다.' } },
+      { status: 413 }
+    );
+  }
 
   if (!student_id || !practice_type || !raw_text) {
     return NextResponse.json(

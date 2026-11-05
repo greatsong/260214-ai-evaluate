@@ -1,18 +1,30 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
+import { requireTeacher } from '@/lib/viewer';
 
-export async function GET() {
+export async function GET(request) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const db = await ensureDB();
   if (!db) {
     const { demoStudents } = await import('@/lib/demoData');
-    return NextResponse.json({ success: true, data: [...demoStudents] });
+    const data = demoStudents.map(({ pin, ...student }) => ({ ...student, has_pin: !!pin }));
+    return NextResponse.json({ success: true, data });
   }
 
-  const result = await db.execute('SELECT * FROM students ORDER BY class_name, number');
+  // pin 열은 응답에 넣지 않는다
+  const result = await db.execute(
+    `SELECT id, student_number, name, class_name, number, created_at, pin IS NOT NULL AS has_pin
+     FROM students ORDER BY class_name, number`
+  );
   return NextResponse.json({ success: true, data: result.rows });
 }
 
 export async function POST(request) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { student_number, name, class_name, number } = body;
 

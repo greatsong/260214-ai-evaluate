@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { ensureDB } from '@/lib/dbInit';
+import { requireTeacher } from '@/lib/viewer';
 
 export async function GET(request, { params }) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const { id } = await params;
   const db = await ensureDB();
 
@@ -28,6 +32,9 @@ export async function GET(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const gate = await requireTeacher(request);
+  if (gate.response) return gate.response;
+
   const { id } = await params;
   const db = await ensureDB();
 

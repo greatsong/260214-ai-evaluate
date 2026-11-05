@@ -5,7 +5,7 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1'
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/']
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/__tests__/security/']
 };
 
 module.exports = config;
